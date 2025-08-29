@@ -1,0 +1,25 @@
+.location-permission {
+  text-align: center;
+  margin: 20px;
+}
+
+.location-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 5px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.location-link:hover {
+  background-color: #0056b3;
+}
+
+.location-message {
+  margin-top: 15px;
+  font-weight: 500;
+  color: #333;
+}

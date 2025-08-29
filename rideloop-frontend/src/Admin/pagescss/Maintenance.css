@@ -1,0 +1,60 @@
+.maintenance-container {
+	max-width: 800px;
+	margin: 40px auto;
+	padding: 24px;
+	background: #fff;
+	border-radius: 18px;
+	box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.maintenance-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 32px;
+}
+
+.add-insurance-btn {
+	background: #007bff;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 10px 22px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+.add-insurance-btn:hover {
+	background: #0056b3;
+}
+
+.insurance-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+}
+
+.insurance-card {
+	flex: 1 1 220px;
+	background: #f8f9fa;
+	border-radius: 14px;
+	box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+	padding: 20px 18px;
+	min-width: 220px;
+	max-width: 300px;
+	margin-bottom: 12px;
+	transition: box-shadow 0.2s;
+}
+.insurance-card:hover {
+	box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+}
+.insurance-card h3 {
+	margin: 0 0 8px 0;
+	font-size: 1.2rem;
+	color: #007bff;
+}
+.insurance-card p {
+	margin: 0;
+	color: #333;
+	font-size: 1rem;
+}
