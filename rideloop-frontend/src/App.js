@@ -18,6 +18,13 @@ import EditMaintenance from './Admin/pages/Maintanace/EditMaintenance';
 import Login from './Authentication/pages/Login'; 
 import Register from './Authentication/pages/Register';
 import Home from './Home';
+import CustomerApproval from "./Admin/pages/Dashboard/CustomerApproval"
+import FinancialReport from "./Admin/pages/Reports/FinancialReport"
+import FinancialReportsAdmin from "./Admin/pages/Reports/FinancialReportsAdmin"
+import CreateReport from "./Admin/pages/Reports/CreateReport"
+import UpdateReport from "./Admin/pages/Reports/UpdateReport"
+import DeleteReport from "./Admin/pages/Reports/DeleteReport"
+import Approval from "./Admin/pages/CustomerApprovals/Aprovals"
 
 function App() {
   return (
@@ -38,6 +45,14 @@ function App() {
       <Route path="/EditProfile" element={<EditProfile />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
+      <Route path="/CustomerApproval" element={<CustomerApproval />} />
+      <Route path="/FinancialReport" element={<FinancialReport />} />
+      <Route path="/Reports" element={<Reports />} />
+      <Route path="/FinancialReportsAdmin" element={<FinancialReportsAdmin />} />
+      <Route path="/CreateReport" element={<CreateReport />} />
+      <Route path="/UpdateReport" element={<UpdateReport />} />
+      <Route path="/DeleteReport" element={<DeleteReport />} />
+      <Route path="/Approval" element={<Approval />} />
         
       {/* Fallback route for debugging */}
       <Route path="*" element={<div style={{background: 'red', color: 'white', padding: 20, fontWeight: 'bold', fontSize: 24}}>DEBUG: Fallback route rendered. Routing is working.</div>} />
