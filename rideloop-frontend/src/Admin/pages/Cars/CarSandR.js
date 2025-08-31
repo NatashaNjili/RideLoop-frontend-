@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/rideloop/api/cars';
+const API_BASE = 'http://localhost:8080/rideloopdb/api/cars';
 
 export async function fetchAllCars() {
   const response = await fetch(`${API_BASE}/all`);
@@ -35,4 +35,24 @@ export async function updateCarLocation(carId, location, distanceTravelled) {
 
   return await response.json(); // Returns updated car
 }
+export const fetchCarById = async (id) => {
+  const res = await fetch(`${API_BASE}/${id}`);
+  if (!res.ok) throw new Error('Car not found');
+  return res.json();
+};
+export const updateCar = async (id, carData) => {
+  const res = await fetch(`${API_BASE}/update/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(carData),
+  });
+  if (!res.ok) throw new Error('Failed to update car');
+  return res.json();
+};
 
+export const deleteCar = async (id) => {
+  const res = await fetch(`${API_BASE}/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete car');
+};

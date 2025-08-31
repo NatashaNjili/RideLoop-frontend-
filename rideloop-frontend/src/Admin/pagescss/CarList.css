@@ -1,58 +1,260 @@
 .car-list-container {
   max-width: 1200px;
   margin: 40px auto;
-  padding: 28px 24px;
+  padding: 24px;
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-.car-list-container h2 {
-  margin-bottom: 18px;
-  color: #007bff;
-  font-size: 1.3rem;
-}
-.car-list {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
-@media (max-width: 1200px) {
-  .car-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-@media (max-width: 900px) {
-  .car-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 600px) {
-  .car-list {
-    grid-template-columns: 1fr;
-  }
-}
-.car-card {
-  background: #f7f9fa;
-  border-radius: 10px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-  padding: 18px 16px;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.car-card h3 {
-  margin: 0 0 8px 0;
-  color: #007bff;
-  font-size: 1.1rem;
-}
-.car-card p {
-  margin: 2px 0;
+.car-list-container h2 {
+  font-size: 1.8rem;
   color: #333;
-  font-size: 0.98rem;
+  margin-bottom: 32px;
+  text-align: center;
 }
+
 .error-msg {
-  color: #d32f2f;
-  font-size: 0.98rem;
-  margin-bottom: 6px;
+  color: #dc3545;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-bottom: 16px;
 }
+
+/* --- Car Cards Layout --- */
+.car-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+}
+
+.car-card {
+  flex: 1 1 280px;
+  background: #f8f9fa;
+  border-radius: 14px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  padding: 20px 18px;
+  min-width: 280px;
+  max-width: 380px;
+  transition: box-shadow 0.2s ease;
+  position: relative;
+  border: 1px solid #e9ecef;
+}
+
+.car-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+}
+
+/* --- Card Header with Menu --- */
+.car-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.car-card-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #007bff;
+  flex: 1;
+  font-weight: 600;
+}
+
+/* --- Three-dot Menu --- */
+.menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-dots {
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.menu-dots:hover {
+  color: #007bff;
+  background: rgba(0, 123, 255, 0.1);
+}
+
+/* --- Dropdown Menu --- */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 160px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 10;
+  transform: scale(1);
+  opacity: 1;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.dropdown-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.dropdown-menu button:hover {
+  background: #f1f7ff;
+}
+
+.dropdown-menu button svg {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.dropdown-menu button:nth-child(1) svg {
+  color: #007bff;
+}
+
+.dropdown-menu button:nth-child(2) svg {
+  color: #dc3545;
+}
+
+.dropdown-menu button:hover:nth-child(1) {
+  color: #0056b3;
+}
+
+.dropdown-menu button.delete-btn:hover {
+  color: #c82333;
+  background: #fff1f1;
+}
+.dropdown-menu button.delete-btn:hover svg {
+  color: #c82333;
+}
+
+/* --- Car Details --- */
+.car-card p {
+  margin: 8px 0;
+  font-size: 0.95rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.car-card p b {
+  color: #212529;
+}
+
+/* --- Status Badge --- */
+.status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-available {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-rented {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.status-maintenance {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-out-of-service {
+  background-color: #d6d8d9;
+  color: #383d41;
+  border: 1px solid #c6c8ca;
+}
+
+.car-card-header {
+  position: relative; 
+}
+
+/* --- Car Header with Actions --- */
+.car-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.car-card-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #007bff;
+  font-weight: 600;
+  flex: 1;
+}
+
+/* --- Action Buttons (Edit & Delete) --- */
+.car-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Edit Button */
+.action-btn.edit {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.action-btn.edit:hover {
+  background: #bae6fd;
+  color: #0369a1;
+}
+
+/* Delete Button */
+.action-btn.delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.action-btn.delete:hover {
+  background: #fecaca;
+  color: #991b1b;
+}
+
