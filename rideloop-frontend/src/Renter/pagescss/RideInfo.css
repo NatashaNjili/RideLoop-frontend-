@@ -1,0 +1,68 @@
+/* RideInfo.css */
+
+.rideinfo-popup {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  z-index: 1000;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.rideinfo-title {
+  margin-top: 0;
+  color: #333;
+}
+
+.rideinfo-car-details {
+  margin: 15px 0;
+  color: #555;
+}
+
+.rideinfo-car-details strong {
+  color: #222;
+}
+
+.rideinfo-price {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.rideinfo-buttons {
+  margin-top: 20px;
+}
+
+.rideinfo-btn {
+  padding: 10px 20px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.rideinfo-btn-accept {
+  background-color: #28a745;
+  color: white;
+}
+
+.rideinfo-btn-decline {
+  background-color: #dc3545;
+  color: white;
+
+}
+.rideinfo-popup {
+  animation: fadeIn 0.5s ease-in;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+

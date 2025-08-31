@@ -9,7 +9,9 @@ import AddMaintenance from './Admin/pages/Maintanace/AddMaintenance';
 import Location from './Common/pages/Location/Location';
 import CarList from './Admin/pages/Cars/CarList';
 import AddNewCar from './Admin/pages/Cars/AddNewCar';
-
+import RenterDashboard from './Renter/pages/Dashboard/RenterDashaboard';
+import RideInfo from './Renter/pages/Rides/RideInfo';
+import RideProcess from './Renter/pages/Rides/RideProcess';
 
 function App() {
   return (
@@ -22,6 +24,10 @@ function App() {
       <Route path="/Maintenance" element={<Maintenance />} />
       <Route path="/AddMaintenance" element={<AddMaintenance />} />
       <Route path="/Location" element={<Location />} />
+      <Route path="/RenterDashboard" element={<RenterDashboard />} />
+      <Route path="/ride-info" element={<RideInfo />} />
+      <Route path="/ride-process" element={<RideProcess />} />
+        
       {/* Fallback route for debugging */}
       <Route path="*" element={<div style={{background: 'red', color: 'white', padding: 20, fontWeight: 'bold', fontSize: 24}}>DEBUG: Fallback route rendered. Routing is working.</div>} />
     </Routes>

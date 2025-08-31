@@ -24,6 +24,7 @@ function AdminDashboard() {
             <li><Link to="/Maintenance" className="sidebar-link">Maintenance</Link></li>
             <li><Link to="/admin/manage-bookings" className="sidebar-link">Manage Bookings</Link></li>
             <li><Link to="/admin/reports" className="sidebar-link">Reports</Link></li>
+           <li><Link to="/RenterDashboard" className="sidebar-link">Renter Dashboard</Link></li>
           </ul>
         </nav>
         <button className="logout-button" onClick={handleLogout}>Logout</button>

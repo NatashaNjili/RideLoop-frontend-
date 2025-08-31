@@ -1,0 +1,42 @@
+
+.ride-popup {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 20px;
+  width: 300px;
+  text-align: center;
+  z-index: 1000;
+}
+
+.ride-popup h3 {
+  margin-top: 0;
+}
+
+.ride-popup-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.accept-btn {
+  background: #28a745;
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.decline-btn {
+  background: #dc3545;
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}

@@ -54,3 +54,18 @@
   border: 2px solid #333;
   border-radius: 10px;
 }
+.leaflet-marker-icon.accepted-car img {
+  filter: hue-rotate(180deg) brightness(1.1); /* Turns green → blue */
+}
+/* In Location.css */
+.leaflet-marker-icon {
+  cursor: move !important;
+}
+
+.leaflet-marker-draggable {
+  cursor: grab;
+}
+
+.leaflet-marker-dragging {
+  cursor: grabbing;
+}
