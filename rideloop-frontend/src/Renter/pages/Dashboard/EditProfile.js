@@ -17,27 +17,13 @@ const EditProfile = () => {
     licenseNumber: initialProfile?.licenseNumber || "",
     phoneNumber: initialProfile?.phoneNumber || "",
     address: initialProfile?.address || { streetName: "", suburb: "", province: "", zipCode: "" },
-    idDocumentBase64: initialProfile?.idDocumentBase64 || null,
-    licenseDocumentBase64: initialProfile?.licenseDocumentBase64 || null,
-    proofOfAddressBase64: initialProfile?.proofOfAddressBase64 || null,
-    profileImageBase64: initialProfile?.profileImageBase64 || null,
+    status: initialProfile?.status || "pending",
   });
 
-  const fileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = (error) => reject(error);
-    });
-
-  const handleChange = async (e) => {
-    const { name, value, files } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
     if (["streetName", "suburb", "province", "zipCode"].includes(name)) {
       setProfile(prev => ({ ...prev, address: { ...prev.address, [name]: value } }));
-    } else if (files && files[0]) {
-      const base64String = await fileToBase64(files[0]);
-      setProfile(prev => ({ ...prev, [name + "Base64"]: base64String }));
     } else {
       setProfile(prev => ({ ...prev, [name]: value }));
     }
@@ -50,18 +36,8 @@ const EditProfile = () => {
       return;
     }
 
-    const { profileID, ...payload } = profile;
-    const safePayload = {
-      ...payload,
-      idDocumentBase64: payload.idDocumentBase64 || null,
-      licenseDocumentBase64: payload.licenseDocumentBase64 || null,
-      proofOfAddressBase64: payload.proofOfAddressBase64 || null,
-      profileImageBase64: payload.profileImageBase64 || null,
-      address: payload.address || { streetName: "", suburb: "", province: "", zipCode: "" },
-    };
-
     try {
-      await axios.put(`${API_URL}/${profileID}`, safePayload);
+      await axios.put(`${API_URL}/${profile.profileID}`, profile);
       alert("Profile updated successfully!");
       navigate("/profile", { state: { userID } });
     } catch (err) {
@@ -80,7 +56,7 @@ const EditProfile = () => {
             type="text"
             name={field}
             placeholder={field.replace(/([A-Z])/g, " $1")}
-            value={profile[field] || ""}
+            value={profile[field]}
             onChange={handleChange}
           />
         ))}
@@ -92,15 +68,12 @@ const EditProfile = () => {
             type="text"
             name={field}
             placeholder={field.replace(/([A-Z])/g, " $1")}
-            value={profile.address?.[field] || ""}
+            value={profile.address[field]}
             onChange={handleChange}
           />
         ))}
 
-        <h3>Documents</h3>
-        {["idDocument", "licenseDocument", "proofOfAddress", "profileImage"].map(field => (
-          <input key={field} type="file" name={field} onChange={handleChange} />
-        ))}
+        <p><strong>Status:</strong> {profile.status}</p>
 
         <button type="submit" style={{ marginTop: "10px", width: "150px", padding: "8px 12px", backgroundColor: "#25c90c", color: "#fff", border: "none", borderRadius: "5px" }}>
           Save Changes

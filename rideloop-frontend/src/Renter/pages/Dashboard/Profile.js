@@ -35,8 +35,8 @@ const Profile = () => {
     fetchProfile();
   }, [userID]);
 
-  const handleEditClick = (profileData) => {
-    navigate("/editprofile", { state: { userID, profile: profileData } });
+  const handleEditClick = () => {
+    navigate("/editprofile", { state: { userID, profile } });
   };
 
   if (!loggedInUser) return <p>User not logged in.</p>;
@@ -78,13 +78,7 @@ const Profile = () => {
             <>
               <p>No profile found.</p>
               <button
-                onClick={() => handleEditClick({
-                  firstName: "",
-                  lastName: "",
-                  phoneNumber: "",
-                  profileImageBase64: null,
-                  address: { streetName: "", suburb: "", province: "", zipCode: "" },
-                })}
+                onClick={handleEditClick}
                 style={{ marginTop: "15px", padding: "8px 16px", cursor: "pointer" }}
               >
                 Create Profile
@@ -92,15 +86,11 @@ const Profile = () => {
             </>
           ) : (
             <>
-              <img
-                src={profile.profileImageBase64 ? `data:image/jpeg;base64,${profile.profileImageBase64}` : "/default-profile.png"}
-                alt="Profile"
-                style={{ width: "150px", height: "150px", borderRadius: "50%", objectFit: "cover", marginBottom: "20px" }}
-              />
               <h2>{profile.firstName} {profile.lastName}</h2>
               <p>{profile.address.streetName}, {profile.address.suburb}, {profile.address.province}, {profile.address.zipCode}</p>
               <p><strong>Phone:</strong> {profile.phoneNumber}</p>
-              <button onClick={() => handleEditClick(profile)} style={{ marginTop: "15px", padding: "8px 16px", cursor: "pointer" }}>
+              <p><strong>Status:</strong> {profile.status}</p>
+              <button onClick={handleEditClick} style={{ marginTop: "15px", padding: "8px 16px", cursor: "pointer" }}>
                 Edit Profile
               </button>
             </>
