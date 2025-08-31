@@ -3,7 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import '../../pagescss/AddMaintenance.css';
 import { sendInsuranceToBackend } from './MaintenanceSandR';
 
-const AddMaintenance = ({ onAdd }) => {
+// List of standard car insurance coverage types
+const COVERAGE_TYPES = [
+  'Comprehensive',
+  'Third Party Only',
+  'Third Party, Fire and Theft',
+  'Collision',
+  'Liability Only',
+  'Basic Liability + Extras',
+];
+
+const AddMaintenance = () => {
   const navigate = useNavigate();
   const [insuranceCompanyName, setInsuranceCompanyName] = useState('');
   const [contactPerson, setContactPerson] = useState('');
@@ -18,73 +28,169 @@ const AddMaintenance = ({ onAdd }) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    if (!insuranceCompanyName || !contactPerson || !contactNumber || !coverageType || !costPerMonth || !description) {
+
+    // Validate required fields
+    if (
+      !insuranceCompanyName.trim() ||
+      !contactPerson.trim() ||
+      !contactNumber.trim() ||
+      !coverageType ||
+      !costPerMonth ||
+      !description.trim()
+    ) {
       setError('All fields are required.');
       return;
     }
-    if (isNaN(Number(costPerMonth))) {
-      setError('Cost per month must be a number.');
+
+    // Validate cost is a number
+    const cost = Number(costPerMonth);
+    if (isNaN(cost) || cost < 0) {
+      setError('Cost per month must be a valid positive number.');
       return;
     }
+
+    // Prepare data to send
+    const newInsurance = {
+      insuranceCompanyName: insuranceCompanyName.trim(),
+      contactPerson: contactPerson.trim(),
+      contactNumber,
+      coverageType,
+      costPerMonth: cost,
+      description: description.trim(),
+    };
+
     try {
-      await sendInsuranceToBackend({ insuranceCompanyName, contactPerson, contactNumber, coverageType, costPerMonth, description });
+      await sendInsuranceToBackend(newInsurance);
       setSuccess('Insurance company added successfully!');
+      
+      // Reset form
       setInsuranceCompanyName('');
       setContactPerson('');
       setContactNumber('');
       setCoverageType('');
       setCostPerMonth('');
       setDescription('');
-      setTimeout(() => navigate('/Maintenance'), 1200); // Navigate after short delay
+
+      // Redirect after success
+      setTimeout(() => navigate('/Maintenance'), 1200);
     } catch (err) {
-      setError('Failed to add insurance company.');
+      setError('Failed to add insurance company. Please try again.');
+      console.error('Add insurance error:', err);
     }
   };
 
   return (
-    <div className="App">
-      <div style={{ position: 'absolute', top: 24, left: 24, zIndex: 10 }}>
+    <div className="add-maintenance-page">
+      {/* Back Button */}
+      <div className="back-button-container">
         <button
           type="button"
           onClick={() => navigate('/Maintenance')}
-          style={{ background: 'none', border: 'none', color: '#007bff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+          aria-label="Go back to Maintenance List"
         >
-          <span style={{ fontSize: 22, marginRight: 4 }}>&larr;</span> Back
+          <span aria-hidden="true">←</span> Back
         </button>
       </div>
-      
-      {/* Updated container and form classes */}
+
+      {/* Main Form */}
       <div className="add-maintenance-container">
         <h2>Add Insurance Company</h2>
+
         {error && <p className="error-msg">{error}</p>}
-        {success && <p className="success-message" style={{color: '#28a745', fontSize: '0.98rem', marginBottom: '6px'}}>{success}</p>}
-        
+        {success && <p className="success-message">{success}</p>}
+
         <form className="add-maintenance-form" onSubmit={handleSubmit}>
-          <div>
-            <label>Company Name</label>
-            <input type="text" value={insuranceCompanyName} onChange={e => setInsuranceCompanyName(e.target.value)} placeholder="Enter company name" required />
+          {/* Company Name */}
+          <div className="form-group">
+            <label htmlFor="companyName">Company Name</label>
+            <input
+              id="companyName"
+              type="text"
+              value={insuranceCompanyName}
+              onChange={(e) => setInsuranceCompanyName(e.target.value)}
+              placeholder="e.g., ABC Insurance Ltd"
+              required
+            />
           </div>
-          <div>
-            <label>Contact Person</label>
-            <input type="text" value={contactPerson} onChange={e => setContactPerson(e.target.value)} placeholder="Enter contact person" required />
+
+          {/* Contact Person */}
+          <div className="form-group">
+            <label htmlFor="contactPerson">Contact Person</label>
+            <input
+              id="contactPerson"
+              type="text"
+              value={contactPerson}
+              onChange={(e) => setContactPerson(e.target.value)}
+              placeholder="e.g., John Doe"
+              required
+            />
           </div>
-          <div>
-            <label>Contact Number</label>
-            <input type="text" value={contactNumber} onChange={e => setContactNumber(e.target.value)} placeholder="Enter contact number" required />
+
+          {/* Contact Number */}
+          <div className="form-group">
+            <label htmlFor="contactNumber">Contact Number</label>
+            <input
+              id="contactNumber"
+              type="tel"
+              value={contactNumber}
+              onChange={(e) => setContactNumber(e.target.value)}
+              placeholder="e.g., 0771234567"
+              pattern="[0-9]{10}"
+              title="10-digit phone number"
+              required
+            />
           </div>
-          <div>
-            <label>Coverage Type</label>
-            <input type="text" value={coverageType} onChange={e => setCoverageType(e.target.value)} placeholder="Enter coverage type" required />
+
+          {/* Coverage Type (Dropdown) */}
+          <div className="form-group">
+            <label htmlFor="coverageType">Coverage Type</label>
+            <select
+              id="coverageType"
+              value={coverageType}
+              onChange={(e) => setCoverageType(e.target.value)}
+              required
+            >
+              <option value="">Select a coverage type</option>
+              {COVERAGE_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
           </div>
-          <div>
-            <label>Cost Per Month</label>
-            <input type="number" value={costPerMonth} onChange={e => setCostPerMonth(e.target.value)} placeholder="Enter cost per month" required />
+
+          {/* Cost Per Month */}
+          <div className="form-group">
+            <label htmlFor="costPerMonth">Cost Per Month (LKR)</label>
+            <input
+              id="costPerMonth"
+              type="number"
+              value={costPerMonth}
+              onChange={(e) => setCostPerMonth(e.target.value)}
+              placeholder="e.g., 1500.00"
+              min="0"
+              step="0.01"
+              required
+            />
           </div>
-          <div>
-            <label>Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Enter description" required />
+
+          {/* Description */}
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g., Covers all damages including accidents, theft, and natural disasters"
+              rows="3"
+              required
+            />
           </div>
-          <button type="submit">Add Insurance</button>
+
+          {/* Submit Button */}
+          <button type="submit" className="submit-btn">
+            Add Insurance
+          </button>
         </form>
       </div>
     </div>
