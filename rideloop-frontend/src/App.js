@@ -19,13 +19,16 @@ import EditMaintenance from './Admin/pages/Maintanace/EditMaintenance';
 import Login from './Authentication/pages/Login'; 
 import Register from './Authentication/pages/Register';
 import Home from './Home';
-<<<<<<< HEAD
-import CustomerApprovalPage from  './Admin/pages/CustomerApproval/CustomerApprovalPage';
+import CustomerApproval from "./Admin/pages/Dashboard/CustomerApproval"
+import FinancialReport from "./Admin/pages/Reports/FinancialReport"
+import FinancialReportsAdmin from "./Admin/pages/Reports/FinancialReportsAdmin"
+import CreateReport from "./Admin/pages/Reports/CreateReport"
+import UpdateReport from "./Admin/pages/Reports/UpdateReport"
+import DeleteReport from "./Admin/pages/Reports/DeleteReport"
+import Approval from "./Admin/pages/CustomerApprovals/Aprovals"
 import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
-
-=======
 import EditCar from './Admin/pages/Cars/EditCar';
->>>>>>> fcac44f42d320ff8439e027a28d8b8b40f44a8de
+
 
 function App() {
   return (
@@ -46,15 +49,20 @@ function App() {
       <Route path="/EditProfile" element={<EditProfile />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
-<<<<<<< HEAD
-      <Route path="/CustomerApprovalPage" element={<CustomerApprovalPage />} />
+      <Route path="/CustomerApproval" element={<CustomerApproval />} />
+      <Route path="/FinancialReport" element={<FinancialReport />} />
+      <Route path="/Reports" element={<Reports />} />
+      <Route path="/FinancialReportsAdmin" element={<FinancialReportsAdmin />} />
+      <Route path="/CreateReport" element={<CreateReport />} />
+      <Route path="/UpdateReport" element={<UpdateReport />} />
+      <Route path="/DeleteReport" element={<DeleteReport />} />
+      <Route path="/Approval" element={<Approval />} />
       <Route path="/ViewCustomerProfile" element={<ViewCustomerProfile />} />
-=======
         <Route path="/EditMaintenance/:id" element={<EditMaintenance />} />
         <Route path="/EditCar/:id" element={<EditCar/>} />
       {/* Fallback route for debugging */}
       <Route path="*" element={<div style={{background: 'red', color: 'white', padding: 20, fontWeight: 'bold', fontSize: 24}}>DEBUG: Fallback route rendered. Routing is working.</div>} />
->>>>>>> fcac44f42d320ff8439e027a28d8b8b40f44a8de
+
     </Routes>
   );
 }

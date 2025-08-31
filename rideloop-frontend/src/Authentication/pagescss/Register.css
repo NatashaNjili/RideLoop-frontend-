@@ -106,3 +106,10 @@ form.register-form {
   text-align: center;
   margin: -5px 0 10px;
 }
+
+.error-message-fr {
+  color: #388e3c;
+  font-size: 0.9rem;
+  text-align: center;
+  margin: -5px 0 10px;
+}
