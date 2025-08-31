@@ -1,0 +1,133 @@
+/* Full page background */
+.home-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;  /* changed to min-height for flexibility */
+  background: url('./../src/assets/loginbackground.jpg') no-repeat center center fixed;
+  background-size: cover;
+
+  color: #fff;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.home-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(9, 9, 9, 0.251); /* Slightly transparent overlay */
+  z-index: 0;
+}
+
+/* Centered content box */
+.home-content {
+  background: rgba(0, 0, 0, 0.603);
+  padding: 40px 30px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.714);
+}
+
+/* Title */
+.home-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+/* Subtitle */
+.home-header p {
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+/* Buttons container */
+.home-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 0 auto 40px auto;
+  margin-bottom: 15px; /* center and spacing below */
+  max-width: fit-content;
+}
+
+/* Common button styles */
+.home-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+  transition: background 0.3s ease;
+  width: 130px;
+  min-height: 20px;
+  cursor: pointer;
+}
+
+/* Login button */
+.login-button {
+  background-color: #4caf50;
+}
+
+.login-button:hover {
+  background-color: #297a2e;
+}
+
+/* Register button */
+.register-button {
+  background-color: #2196f3;
+  margin-top: 28px; /* Spacing from the login button */
+}
+
+.register-button:hover {
+  background-color: #0352a1;
+}
+
+/* Public sections background & text color */
+.public-sections {
+  padding: 20px 10px 0 10px;
+  background-color: transparent;
+  color: #fff;
+  text-align: center;
+}
+
+/* Individual sections spacing */
+.public-sections section {
+  margin-bottom: 35px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Section headings */
+.public-sections h2 {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+  margin-top: 50px;
+}
+
+/* Paragraphs and lists */
+.public-sections p,
+.public-sections li {
+  font-size: 0.9rem;
+  line-height: 1.3;
+  color: #ddd;
+}
+
+/* Ordered list in How it Works */
+.public-sections ol {
+  padding-left: 20px;
+  text-align: left;
+  max-width: 400px;
+  margin: 0 auto;
+  color: #ddd;
+}
