@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/rideloop/api/cars';
+const API_BASE = 'http://localhost:8080/rideloopdb/api/cars';
 
 export async function fetchAllCars() {
   const response = await fetch(`${API_BASE}/all`);

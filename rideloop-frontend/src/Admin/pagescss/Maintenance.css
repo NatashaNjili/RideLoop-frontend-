@@ -1,4 +1,11 @@
+
+
 /* --- Existing styles preserved --- */
+*{
+	 margin: 0;
+  padding: 0;
+  
+}
 .maintenance-container {
 	max-width: 800px;
 	margin: 40px auto;

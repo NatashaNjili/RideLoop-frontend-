@@ -26,7 +26,7 @@ export async function sendLocationToBackend(coords) {
   }
 }
 export async function fetchLocationById(id) {
-  const response = await fetch(`http://localhost:8080/rideloop/api/locations/${id}`);
+  const response = await fetch(`http://localhost:8080/rideloopdb/api/locations/${id}`);
   
   if (!response.ok) {
     const errorText = await response.text();

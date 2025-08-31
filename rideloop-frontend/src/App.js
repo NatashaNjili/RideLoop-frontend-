@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+
 import { Routes, Route } from 'react-router-dom';
 import AdminDashboard from './Admin/pages/Dashboard/AdminDashboard';
 import ManageCars from './Admin/pages/Dashboard/manageCars';
@@ -18,6 +19,9 @@ import EditMaintenance from './Admin/pages/Maintanace/EditMaintenance';
 import Login from './Authentication/pages/Login'; 
 import Register from './Authentication/pages/Register';
 import Home from './Home';
+import CustomerApprovalPage from  './Admin/pages/CustomerApproval/CustomerApprovalPage';
+import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
+
 
 function App() {
   return (
@@ -38,9 +42,8 @@ function App() {
       <Route path="/EditProfile" element={<EditProfile />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
-        
-      {/* Fallback route for debugging */}
-      <Route path="*" element={<div style={{background: 'red', color: 'white', padding: 20, fontWeight: 'bold', fontSize: 24}}>DEBUG: Fallback route rendered. Routing is working.</div>} />
+      <Route path="/CustomerApprovalPage" element={<CustomerApprovalPage />} />
+      <Route path="/ViewCustomerProfile" element={<ViewCustomerProfile />} />
     </Routes>
   );
 }

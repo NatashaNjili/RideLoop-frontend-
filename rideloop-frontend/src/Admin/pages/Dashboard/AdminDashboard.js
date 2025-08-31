@@ -23,6 +23,7 @@ function AdminDashboard() {
             <li><Link to="/ManageCars" className="sidebar-link">Manage Cars</Link></li>
             <li><Link to="/Maintenance" className="sidebar-link">Maintenance</Link></li>
             <li><Link to="/admin/manage-bookings" className="sidebar-link">Manage Bookings</Link></li>
+            <li><Link to="/CustomerApprovalPage" className="sidebar-link">Customer Approvals</Link></li>
             <li><Link to="/admin/reports" className="sidebar-link">Reports</Link></li>
            <li><Link to="/RenterDashboard" className="sidebar-link">Renter Dashboard</Link></li>
           </ul>
