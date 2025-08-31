@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaSearch } from 'react-icons/fa';
 import logo from '../../../assets/logo.png';
 
-import LocationPermission from "../../../components/LocationPermission";
-import Location from "../../../Common/pages/Location/Location";
+import AdminLocation from "../../../Common/pages/Location/AdminLocation";
 import { sendLocationToBackend } from "../../../Common/pages/Location/LocationSandR";
 
 const ManageCars = () => {
@@ -15,21 +14,7 @@ const ManageCars = () => {
     navigate('/');
   };
 
-  const handleSendLocation = async () => {
-    if (!coords) {
-      alert("No coordinates available yet!");
-      return;
-    }
 
-    try {
-      const result = await sendLocationToBackend(coords);
-      console.log("Location saved:", result);
-      alert(`Location saved! ID: ${result.locationID}`);
-    } catch (error) {
-      console.error("Failed to send location:", error);
-      alert("Failed to save location. Check console for details.");
-    }
-  };
 
   return (
     <div className="layout">
@@ -79,12 +64,7 @@ const ManageCars = () => {
               </button>
             </div>
           </div>
-          <button type="button" onClick={handleSendLocation} style={{ marginLeft: '10px' }}>
-            Send Location to Backend
-          </button>
-          <button type="button">Test Button</button>
-          <LocationPermission setCoords={setCoords} />
-          <Location coords={coords} />
+          <AdminLocation coords={coords} />
         </div>
       </main>
     </div>

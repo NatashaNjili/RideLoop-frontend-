@@ -25,3 +25,13 @@ export async function sendLocationToBackend(coords) {
     throw error;
   }
 }
+export async function fetchLocationById(id) {
+  const response = await fetch(`http://localhost:8080/rideloop/api/locations/${id}`);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch location: ${errorText}`);
+  }
+
+  return await response.json();
+}

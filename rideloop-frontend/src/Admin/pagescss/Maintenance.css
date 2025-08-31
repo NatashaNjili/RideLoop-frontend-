@@ -1,3 +1,4 @@
+/* --- Existing styles preserved --- */
 .maintenance-container {
 	max-width: 800px;
 	margin: 40px auto;
@@ -44,10 +45,12 @@
 	max-width: 300px;
 	margin-bottom: 12px;
 	transition: box-shadow 0.2s;
+	position: relative; /* Required for absolute positioning inside */
 }
 .insurance-card:hover {
 	box-shadow: 0 4px 16px rgba(0,0,0,0.10);
 }
+
 .insurance-card h3 {
 	margin: 0 0 8px 0;
 	font-size: 1.2rem;
@@ -57,4 +60,89 @@
 	margin: 0;
 	color: #333;
 	font-size: 1rem;
+}
+
+/* --- New: Three-dot Menu & Dropdown --- */
+
+.insurance-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.insurance-card-header h3 {
+	margin: 0;
+	font-size: 1.2rem;
+	color: #007bff;
+	flex: 1;
+}
+
+.menu-dots {
+	color: #6c757d;
+	cursor: pointer;
+	font-size: 1.2em;
+	padding: 4px;
+	border-radius: 50%;
+	transition: background 0.2s ease;
+}
+
+.menu-dots:hover {
+	color: #007bff;
+	background: rgba(0, 123, 255, 0.1);
+}
+
+.dropdown-menu {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	width: 160px;
+	background: #fff;
+	border-radius: 10px;
+	box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+	overflow: hidden;
+	z-index: 10;
+	transform: scale(1);
+	transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.dropdown-menu button {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	text-align: left;
+	padding: 10px 14px;
+	border: none;
+	background: none;
+	cursor: pointer;
+	font-size: 14px;
+	color: #333;
+	transition: background 0.2s;
+}
+
+.dropdown-menu button:hover {
+	background: #f1f7ff;
+}
+
+.dropdown-menu button svg {
+	margin-right: 8px;
+	font-size: 14px;
+}
+
+.dropdown-menu button:nth-child(1) svg {
+	color: #007bff;
+}
+
+.dropdown-menu button:nth-child(2) svg {
+	color: #dc3545;
+}
+
+.dropdown-menu button:hover:nth-child(1) {
+	color: #0056b3;
+}
+
+.dropdown-menu button:hover:nth-child(2) {
+	color: #c82333;
+	background: #fff1f1;
 }

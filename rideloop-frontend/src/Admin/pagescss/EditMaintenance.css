@@ -1,0 +1,151 @@
+.edit-insurance-page {
+  max-width: 700px;
+  margin: 60px auto;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+}
+
+.edit-insurance-page h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #007bff;
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+/* Error Message */
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-bottom: 24px;
+  border: 1px solid #f5c6cb;
+  font-weight: 500;
+}
+
+/* Form */
+.insurance-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form Group */
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #2d3748;
+  font-size: 1rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.15);
+  background-color: #ffffff;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #a0aec0;
+}
+
+/* Textarea */
+.form-group textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+/* Buttons */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 10px;
+}
+
+.cancel-btn,
+.save-btn {
+  padding: 12px 30px;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.save-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #0069d9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .edit-insurance-page {
+    margin: 30px 20px;
+    padding: 30px 20px;
+    border-radius: 12px;
+  }
+
+  .edit-insurance-page h2 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cancel-btn,
+  .save-btn {
+    width: 100%;
+    max-width: 280px;
+    text-align: center;
+  }
+}
