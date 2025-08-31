@@ -18,6 +18,7 @@ import EditMaintenance from './Admin/pages/Maintanace/EditMaintenance';
 import Login from './Authentication/pages/Login'; 
 import Register from './Authentication/pages/Register';
 import Home from './Home';
+import EditCar from './Admin/pages/Cars/EditCar';
 
 function App() {
   return (
@@ -38,7 +39,8 @@ function App() {
       <Route path="/EditProfile" element={<EditProfile />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
-        
+        <Route path="/EditMaintenance/:id" element={<EditMaintenance />} />
+        <Route path="/EditCar/:id" element={<EditCar/>} />
       {/* Fallback route for debugging */}
       <Route path="*" element={<div style={{background: 'red', color: 'white', padding: 20, fontWeight: 'bold', fontSize: 24}}>DEBUG: Fallback route rendered. Routing is working.</div>} />
     </Routes>

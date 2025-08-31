@@ -6,7 +6,7 @@ export async function sendLocationToBackend(coords) {
   };
 
   try {
-    const response = await fetch('http://localhost:8080/rideloop/api/locations/create', {
+    const response = await fetch('http://localhost:8080/rideloopdb/api/locations/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -22,6 +22,13 @@ const EditMaintenance = () => {
 	// Load insurance data by ID
 	useEffect(() => {
 		const loadInsurance = async () => {
+  if (!id) {
+      console.error("ID is missing or invalid:", id);
+      setError("Invalid ID. Cannot load insurance details.");
+      setLoading(false);
+      return;
+    }
+
 			try {
 				const data = await fetchInsuranceById(id);
 				setFormData({
@@ -142,7 +149,7 @@ const EditMaintenance = () => {
 
 				{/* Cost Per Month */}
 				<div className="form-group">
-					<label>Cost Per Month (LKR)</label>
+					<label>Cost Per Month (R)</label>
 					<input
 						type="number"
 						name="costPerMonth" // ✅ Fixed: was "premium"
