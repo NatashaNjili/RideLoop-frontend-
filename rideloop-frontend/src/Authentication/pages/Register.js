@@ -1,15 +1,17 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
+import logo from "../../assets/logo.png";
 import "../pagescss/Register.css";
 
 function Register() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     role: "CUSTOMER",
   });
-
   const [securityCode, setSecurityCode] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [message, setMessage] = useState("");
@@ -26,9 +28,25 @@ function Register() {
     if (role !== "ADMIN") setSecurityCode("");
   };
 
+  const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+  const validatePassword = (password) =>
+    /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/.test(password);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+
+    if (!validateEmail(formData.email)) {
+      setMessage("Invalid email format.");
+      return;
+    }
+
+    if (!validatePassword(formData.password)) {
+      setMessage(
+        "Password must be at least 8 characters, include 1 number and 1 special character."
+      );
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -41,7 +59,6 @@ function Register() {
 
       if (response.status === 201) {
         setMessage("Registration successful!");
-        // Clear form
         setFormData({ username: "", email: "", password: "", role: "CUSTOMER" });
         setSecurityCode("");
         setShowPopup(false);
@@ -55,66 +72,79 @@ function Register() {
   };
 
   return (
-    <div className="App">
+    <div className="home-container">
+      {/* Navbar */}
+      <nav className="navbar">
+        <div className="navbar-logo">
+          <img src={logo} alt="RideLoop Logo" />
+        </div>
+
+        <div className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <ul className={`navbar-menu ${menuOpen ? "active" : ""}`}>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/About">About</Link></li>
+          <li><Link to="/Contact">Contact</Link></li>
+          <li><Link to="/Login">Login</Link></li>
+          <li><Link to="/Register">Register</Link></li>
+        </ul>
+      </nav>
+
+      {/* Registration Form */}
       <form className="register-form" onSubmit={handleSubmit}>
         <h2 className="register-title">Register</h2>
-
         {message && <p className="error-message">{message}</p>}
 
-        <div>
-          <label className="register-label">Username</label>
-          <input
-            type="text"
-            name="username"
-            className="register-input"
-            value={formData.username}
-            onChange={handleChange}
-            placeholder="Enter username"
-            required
-          />
-        </div>
+        <label className="register-label">Username</label>
+        <input
+          type="text"
+          name="username"
+          className="register-input"
+          value={formData.username}
+          onChange={handleChange}
+          placeholder="Enter username"
+          required
+        />
 
-        <div>
-          <label className="register-label">Email</label>
-          <input
-            type="email"
-            name="email"
-            className="register-input"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Enter email"
-            required
-          />
-        </div>
+        <label className="register-label">Email</label>
+        <input
+          type="email"
+          name="email"
+          className="register-input"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Enter email"
+          required
+        />
 
-        <div>
-          <label className="register-label">Password</label>
-          <input
-            type="password"
-            name="password"
-            className="register-input"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Enter password"
-            required
-          />
-        </div>
+        <label className="register-label">Password</label>
+        <input
+          type="password"
+          name="password"
+          className="register-input"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Enter password"
+          required
+        />
 
-        <div>
-          <label className="register-label">Role</label>
-          <select
-            name="role"
-            className="register-input"
-            value={formData.role}
-            onChange={handleRoleChange}
-          >
-            <option value="CUSTOMER">Customer</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-        </div>
+        <label className="register-label">Role</label>
+        <select
+          name="role"
+          className="register-input"
+          value={formData.role}
+          onChange={handleRoleChange}
+        >
+          <option value="CUSTOMER">Customer</option>
+          <option value="ADMIN">Admin</option>
+        </select>
 
         {showPopup && (
-          <div style={{ marginTop: "15px" }}>
+          <>
             <label className="register-label">Admin Security Code</label>
             <input
               type="password"
@@ -124,13 +154,21 @@ function Register() {
               placeholder="Enter security code"
               required
             />
-          </div>
+          </>
         )}
 
-        <button type="submit" className="register-button" style={{ marginTop: "25px" }}>
-          Register
-        </button>
+        <button type="submit" className="register-button">Register</button>
       </form>
+
+      {/* Footer */}
+      <footer className="footer">
+        <p>&copy; {new Date().getFullYear()} RideLoop Rentals. All rights reserved.</p>
+        <ul className="footer-links">
+          <li><Link to="/Terms">Terms</Link></li>
+          <li><Link to="/Privacy">Privacy</Link></li>
+          <li><Link to="/Contact">Contact</Link></li>
+        </ul>
+      </footer>
     </div>
   );
 }
