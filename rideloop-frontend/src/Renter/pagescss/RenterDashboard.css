@@ -148,4 +148,128 @@
 .dashboard-nav li a:hover {
   color: #0066cc;
   border-bottom: 2px solid #0066cc;
-  padding-bottom: 4px;}
+  padding-bottom: 4px;
+}
+
+/* ===== MAIN CONTENT ===== */
+.dashboard-main {
+  padding: 2rem 4rem;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+  background: linear-gradient(135deg, #007bff, #00c6ff);
+  color: white;
+  padding: 1.8rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.welcome-banner .primary-btn {
+  margin-top: 10px;
+  background: white;
+  color: #007bff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.welcome-banner .primary-btn:hover {
+  background: #f0f0f0;
+}
+
+/* Quick Stats */
+.quick-stats {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  flex: 1;
+  min-width: 200px;
+}
+
+.stat-card h4 {
+  color: #0066cc;
+  margin-bottom: 8px;
+}
+
+.stat-card p {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Available Cars */
+.available-cars {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.cars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.car-card {
+  background: #f9fbff;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.2s;
+}
+
+.car-card:hover {
+  transform: scale(1.03);
+}
+
+.primary-btn {
+  background: #0066cc;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.primary-btn:hover {
+  background: #004da3;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .search-bar {
+    width: 80%;
+  }
+
+  .dashboard-nav ul {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dashboard-main {
+    padding: 1.5rem;
+  }
+}
