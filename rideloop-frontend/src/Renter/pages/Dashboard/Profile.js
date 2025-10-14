@@ -1,102 +1,219 @@
+
+                    <li><Link to="/RenterDashaboard">Home</Link></li>
+
+       /* eslint-disable */
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import logo from "../../../assets/logo.png";
 import "../../pagescss/Profile.css";
 
 const API_URL = "http://localhost:8080/rideloopdb/profiles";
+
+const terms = [
+  "You must be 18 years or older to use this service.",
+  "You agree to provide accurate personal information.",
+  "All payments must be made through our platform.",
+  "You must follow local traffic laws while driving.",
+  "Unauthorized sharing of account credentials is prohibited.",
+  "Do not damage vehicles intentionally or recklessly.",
+  "Report any accidents immediately to the platform.",
+  "Renter is responsible for fuel charges.",
+  "Insurance coverage applies as per the vehicle’s policy.",
+  "Any fines or penalties are the renter’s responsibility.",
+  "Do not use vehicles for illegal activities.",
+  "Maintain cleanliness of the vehicle during rental.",
+  "Return the vehicle on time to avoid late fees.",
+  "Follow the platform’s instructions for pickup and drop-off.",
+  "Keep your profile information up-to-date.",
+  "The platform may suspend accounts violating terms.",
+  "Disputes will be handled according to our policies.",
+  "Promotional offers are subject to platform rules.",
+  "The platform can update terms at any time with notice.",
+  "Using the platform indicates acceptance of these terms."
+];
 
 const Profile = () => {
   const navigate = useNavigate();
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
   const userID = loggedInUser?.userID;
-  const username = loggedInUser?.username;
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTerms, setShowTerms] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+  const [error, setError] = useState("");
+
+  const storedProfileID = localStorage.getItem("profileID");
 
   useEffect(() => {
-    if (!userID) return;
-
     const fetchProfile = async () => {
+      if (!userID) {
+        setError("No user logged in.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await axios.get(`${API_URL}/me?userID=${userID}`);
+        let profileData;
+        if (storedProfileID) {
+          const res = await axios.get(`${API_URL}/${storedProfileID}`);
+          profileData = res.data;
+        } else {
+          const res = await axios.get(`${API_URL}/user/${userID}`);
+          profileData = res.data;
+          if (profileData.profileID) {
+            localStorage.setItem("profileID", profileData.profileID);
+          }
+        }
+
         setProfile({
-          ...res.data,
-          address: res.data.address || { streetName: "", suburb: "", province: "", zipCode: "" },
+          ...profileData,
+          address: profileData.address || { streetName: "", suburb: "", province: "", zipCode: "" },
+          documents: {
+            id: !!profileData.idDocument,
+            license: !!profileData.licenseDoc,
+            idCopy: !!profileData.idCopy,
+            residence: !!profileData.proofOfResidence
+          },
+          profilePictureUrl: profileData.profileID
+            ? `${API_URL}/${profileData.profileID}/document/profile-picture`
+            : null
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
-        setProfile(null);
+        setError("Error fetching profile. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-
     fetchProfile();
-  }, [userID]);
+  }, [userID, storedProfileID]);
+
+  useEffect(() => {
+    if (profile?.status?.toLowerCase() === "approved") {
+      navigate("/renterdashboard");
+    }
+  }, [profile, navigate]);
+
+  const handleAcceptTerms = async () => {
+    if (!accepted) return;
+    try {
+      await axios.put(`${API_URL}/accept-terms/${userID}`);
+      setShowTerms(false);
+    } catch (err) {
+      console.error("Error accepting terms:", err);
+    }
+  };
 
   const handleEditClick = () => {
     navigate("/editprofile", { state: { userID, profile } });
   };
 
+  const displayAddress = () => {
+    if (!profile) return "";
+    const { streetName, suburb, province, zipCode } = profile.address;
+    return [streetName, suburb, province, zipCode].filter(Boolean).join(", ");
+  };
+
   if (!loggedInUser) return <p>User not logged in.</p>;
   if (loading) return <p>Loading profile...</p>;
+  if (error) return <p>{error}</p>;
+  if (!profile) return <p>No profile found. Please create one.</p>;
 
   return (
-    <div className="layout">
-      <aside className="sidebar">
-        <img src="/logo.png" alt="Logo" className="logo" />
-        <nav>
-          <ul>
-            <li><a className="sidebar-link" href="/dashboard">Dashboard</a></li>
-            <li><a className="sidebar-link" href="/profile">Profile</a></li>
-            <li><a className="sidebar-link" href="/settings">Settings</a></li>
-          </ul>
-        </nav>
-        <button
-          className="logout-button"
-          onClick={() => {
-            localStorage.removeItem("loggedInUser");
-            navigate("/login");
-          }}
-        >
-          Logout
-        </button>
-      </aside>
+    <div className="dashboard-container">
+      {/* ===== HEADER ===== */}
+      <header className="top-bar">
+        <div className="top-left">
+          <img src={logo} alt="RideLoop Logo" className="logo-image" />
+        </div>
+        <button className="hamburger">☰</button>
+      </header>
 
-      <div className="main-content">
-        <header className="top-header">
-          <div className="search-container">
-            <input className="search-bar" placeholder="Search..." />
-            <i className="search-icon">🔍</i>
+      {/* ===== NAVIGATION ===== */}
+      <nav className="dashboard-nav">
+        <ul>
+                    <li><Link to="/RenterDashboard">Home</Link></li>
+
+          <li><Link to="/profile" className="active">My Profile</Link></li>
+          <li><Link to="/rentals">My Rentals</Link></li>
+          <li><Link to="/wallet">Wallet</Link></li>
+          <li><Link to="/notifications">Notifications</Link></li>
+          <li><Link to="/incident">Incidents</Link></li>
+        </ul>
+      </nav>
+
+      {/* ===== MAIN CONTENT ===== */}
+      <main className="profile-main">
+        <div className="profile-card">
+          {profile.profilePictureUrl && (
+            <div className="profile-picture">
+              <img src={profile.profilePictureUrl} alt="Profile" />
+            </div>
+          )}
+
+          <div className="profile-details">
+            <h2>{profile.firstName} {profile.lastName}</h2>
+            {displayAddress() && <p><strong>Address:</strong> {displayAddress()}</p>}
+            {profile.phoneNumber && <p><strong>Phone:</strong> {profile.phoneNumber}</p>}
+            <p><strong>Status:</strong> <span className={`status ${profile.status?.toLowerCase()}`}>{profile.status}</span></p>
           </div>
-          <div className="user-profile">{username || "User"}</div>
-        </header>
 
-        <div className="profile-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px" }}>
-          {!profile ? (
-            <>
-              <p>No profile found.</p>
-              <button
-                onClick={handleEditClick}
-                style={{ marginTop: "15px", padding: "8px 16px", cursor: "pointer" }}
-              >
-                Create Profile
-              </button>
-            </>
-          ) : (
-            <>
-              <h2>{profile.firstName} {profile.lastName}</h2>
-              <p>{profile.address.streetName}, {profile.address.suburb}, {profile.address.province}, {profile.address.zipCode}</p>
-              <p><strong>Phone:</strong> {profile.phoneNumber}</p>
-              <p><strong>Status:</strong> {profile.status}</p>
-              <button onClick={handleEditClick} style={{ marginTop: "15px", padding: "8px 16px", cursor: "pointer" }}>
-                Edit Profile
-              </button>
-            </>
+          {profile.status?.toLowerCase() === "pending" && (
+            <div className="pending-msg">
+              <p>Your profile is awaiting approval.</p>
+              <button onClick={handleEditClick} className="primary-btn">Edit Profile</button>
+            </div>
+          )}
+
+          {/* ===== DOCUMENTS ===== */}
+          {profile.documents && (
+            <div className="profile-documents">
+              <h3>Uploaded Documents</h3>
+              <ul>
+                {profile.documents.id && <li><a href={`${API_URL}/${profile.profileID}/document/id`} target="_blank" rel="noreferrer">ID Document</a></li>}
+                {profile.documents.license && <li><a href={`${API_URL}/${profile.profileID}/document/license`} target="_blank" rel="noreferrer">License</a></li>}
+                {profile.documents.idCopy && <li><a href={`${API_URL}/${profile.profileID}/document/id-copy`} target="_blank" rel="noreferrer">ID Copy</a></li>}
+                {profile.documents.residence && <li><a href={`${API_URL}/${profile.profileID}/document/residence`} target="_blank" rel="noreferrer">Proof of Residence</a></li>}
+              </ul>
+            </div>
           )}
         </div>
-      </div>
+      </main>
+
+      {/* ===== TERMS MODAL ===== */}
+      {showTerms && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Terms and Conditions</h2>
+            <ol className="terms-list">
+              {terms.map((term, index) => <li key={index}>{term}</li>)}
+            </ol>
+            <div className="accept-terms">
+              <input
+                type="checkbox"
+                id="accept"
+                checked={accepted}
+                onChange={() => setAccepted(!accepted)}
+              />
+              <label htmlFor="accept">I accept the terms and conditions</label>
+            </div>
+            <button
+              className={`setup-profile-btn ${!accepted ? "disabled" : ""}`}
+              onClick={handleAcceptTerms}
+              disabled={!accepted}
+            >
+              Accept Terms
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ===== FOOTER ===== */}
+      <footer className="dashboard-footer">
+        <p>© 2025 RideLoop. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

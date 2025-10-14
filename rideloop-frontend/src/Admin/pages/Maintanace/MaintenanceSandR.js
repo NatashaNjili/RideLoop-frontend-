@@ -1,7 +1,7 @@
 // MaintenanceSandR.js
 // Responsible for sending and receiving insurance company data from the backend
 
-const API_URL = 'http://localhost:8080/rideloop/maintenance';
+const API_URL = 'http://localhost:8080/rideloopdb/maintenance';
 
 // Send new insurance company data to backend
 export async function sendInsuranceToBackend(data) {
