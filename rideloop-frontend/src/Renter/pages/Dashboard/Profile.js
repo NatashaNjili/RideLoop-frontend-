@@ -1,3 +1,7 @@
+
+                    <li><Link to="/RenterDashaboard">Home</Link></li>
+
+       /* eslint-disable */
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -40,7 +44,6 @@ const Profile = () => {
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState("");
 
-  // Get profileID from localStorage first
   const storedProfileID = localStorage.getItem("profileID");
 
   useEffect(() => {
@@ -53,17 +56,12 @@ const Profile = () => {
 
       try {
         let profileData;
-
         if (storedProfileID) {
-          // Fetch profile by stored profileID
           const res = await axios.get(`${API_URL}/${storedProfileID}`);
           profileData = res.data;
         } else {
-          // Fallback: fetch profile by userID
           const res = await axios.get(`${API_URL}/user/${userID}`);
           profileData = res.data;
-
-          // Store profileID locally for future use
           if (profileData.profileID) {
             localStorage.setItem("profileID", profileData.profileID);
           }
@@ -71,7 +69,6 @@ const Profile = () => {
 
         setProfile({
           ...profileData,
-          profileID: profileData.profileID,
           address: profileData.address || { streetName: "", suburb: "", province: "", zipCode: "" },
           documents: {
             id: !!profileData.idDocument,
@@ -83,17 +80,13 @@ const Profile = () => {
             ? `${API_URL}/${profileData.profileID}/document/profile-picture`
             : null
         });
-
-        setError("");
       } catch (err) {
-        console.error("Error fetching profile:", err.response?.data || err.message);
+        console.error("Error fetching profile:", err);
         setError("Error fetching profile. Please try again later.");
-        setProfile(null);
       } finally {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, [userID, storedProfileID]);
 
@@ -109,7 +102,7 @@ const Profile = () => {
       await axios.put(`${API_URL}/accept-terms/${userID}`);
       setShowTerms(false);
     } catch (err) {
-      console.error("Error accepting terms:", err.response?.data || err.message);
+      console.error("Error accepting terms:", err);
     }
   };
 
@@ -130,28 +123,28 @@ const Profile = () => {
 
   return (
     <div className="dashboard-container">
-      {/* HEADER */}
+      {/* ===== HEADER ===== */}
       <header className="top-bar">
         <div className="top-left">
           <img src={logo} alt="RideLoop Logo" className="logo-image" />
         </div>
-        <div className="top-right">
-          <button className="hamburger">☰</button>
-        </div>
+        <button className="hamburger">☰</button>
       </header>
 
-      {/* NAVBAR */}
+      {/* ===== NAVIGATION ===== */}
       <nav className="dashboard-nav">
         <ul>
-          <li><Link to="/profile">My Profile</Link></li>
+                    <li><Link to="/RenterDashboard">Home</Link></li>
+
+          <li><Link to="/profile" className="active">My Profile</Link></li>
           <li><Link to="/rentals">My Rentals</Link></li>
           <li><Link to="/wallet">Wallet</Link></li>
           <li><Link to="/notifications">Notifications</Link></li>
-          <li><Link to="/incidents">Incidents</Link></li>
+          <li><Link to="/incident">Incidents</Link></li>
         </ul>
       </nav>
 
-      {/* MAIN CONTENT */}
+      {/* ===== MAIN CONTENT ===== */}
       <main className="profile-main">
         <div className="profile-card">
           {profile.profilePictureUrl && (
@@ -161,10 +154,10 @@ const Profile = () => {
           )}
 
           <div className="profile-details">
-            <p><strong>Name:</strong> {profile.firstName} {profile.lastName}</p>
+            <h2>{profile.firstName} {profile.lastName}</h2>
             {displayAddress() && <p><strong>Address:</strong> {displayAddress()}</p>}
             {profile.phoneNumber && <p><strong>Phone:</strong> {profile.phoneNumber}</p>}
-            <p><strong>Status:</strong> {profile.status}</p>
+            <p><strong>Status:</strong> <span className={`status ${profile.status?.toLowerCase()}`}>{profile.status}</span></p>
           </div>
 
           {profile.status?.toLowerCase() === "pending" && (
@@ -174,10 +167,10 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Documents */}
+          {/* ===== DOCUMENTS ===== */}
           {profile.documents && (
             <div className="profile-documents">
-              <h4>Documents</h4>
+              <h3>Uploaded Documents</h3>
               <ul>
                 {profile.documents.id && <li><a href={`${API_URL}/${profile.profileID}/document/id`} target="_blank" rel="noreferrer">ID Document</a></li>}
                 {profile.documents.license && <li><a href={`${API_URL}/${profile.profileID}/document/license`} target="_blank" rel="noreferrer">License</a></li>}
@@ -189,17 +182,14 @@ const Profile = () => {
         </div>
       </main>
 
-      {/* TERMS MODAL */}
+      {/* ===== TERMS MODAL ===== */}
       {showTerms && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>Terms and Conditions</h2>
             <ol className="terms-list">
-              {terms.map((term, index) => (
-                <li key={index}>{term}</li>
-              ))}
+              {terms.map((term, index) => <li key={index}>{term}</li>)}
             </ol>
-
             <div className="accept-terms">
               <input
                 type="checkbox"
@@ -207,9 +197,8 @@ const Profile = () => {
                 checked={accepted}
                 onChange={() => setAccepted(!accepted)}
               />
-              <label htmlFor="accept">I have read and accept the terms and conditions</label>
+              <label htmlFor="accept">I accept the terms and conditions</label>
             </div>
-
             <button
               className={`setup-profile-btn ${!accepted ? "disabled" : ""}`}
               onClick={handleAcceptTerms}
@@ -221,7 +210,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* FOOTER */}
+      {/* ===== FOOTER ===== */}
       <footer className="dashboard-footer">
         <p>© 2025 RideLoop. All rights reserved.</p>
       </footer>

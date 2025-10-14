@@ -29,6 +29,11 @@
   gap: 10px;
 }
 
+.top-left img {
+  height: 40px;
+  width: auto;
+}
+
 .hamburger {
   background: transparent;
   border: none;
