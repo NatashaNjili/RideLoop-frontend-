@@ -26,7 +26,6 @@ function Home() {
           <li><Link to="/">Home</Link></li>
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#contact">Contact</a></li>
           <li><Link to="/login" className="login-btn">Login / Sign Up</Link></li>
         </ul>
       </nav>

@@ -19,6 +19,9 @@ import EditMaintenance from './Admin/pages/Maintanace/EditMaintenance';
 import Login from './Authentication/pages/Login'; 
 import Register from './Authentication/pages/Register';
 import Home from './Home';
+import Payment from './Renter/pages/Rides/Payment';
+import RentalAction from './Renter/pages/Rides/RentalAction';
+
 import CustomerApproval from "./Admin/pages/Dashboard/CustomerApproval"
 import FinancialReport from "./Admin/pages/Reports/FinancialReport"
 import FinancialReportsAdmin from "./Admin/pages/Reports/FinancialReportsAdmin"
@@ -28,6 +31,7 @@ import DeleteReport from "./Admin/pages/Reports/DeleteReport"
 import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
 import EditCar from './Admin/pages/Cars/EditCar';
 import Rentals from './Renter/pages/Dashboard/Rentals';
+import incident from './Renter/pages/Dashboard/Incident'; 
 import Wallet from './Renter/pages/Dashboard/Wallet';
 import Support from './Renter/pages/Dashboard/Support';
 
@@ -63,6 +67,10 @@ function App() {
         <Route path="/Rentals" element={<Rentals/>} />
         <Route path="/Wallet" element={<Wallet/>} />
         <Route path="/Support" element={<Support/>} />
+        <Route path="/RentalAction" element={<RentalAction />} />
+                <Route path="/incident" element={<incident/>} />
+
+
       {/* Fallback route for debugging */}
       <Route path="*" element={<div style={{background: 'red', color: 'white', padding: 20, fontWeight: 'bold', fontSize: 24}}>DEBUG: Fallback route rendered. Routing is working.</div>} />
 

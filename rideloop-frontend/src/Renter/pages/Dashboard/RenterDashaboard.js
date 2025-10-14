@@ -10,40 +10,31 @@ function RenterDashboard() {
   const [quickStats, setQuickStats] = useState({ trips: 0, distance: 0, spent: 0 });
   const [availableCars, setAvailableCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+  const [location, setLocation] = useState(null);
 
-  // Get logged-in user
   const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
   const userId = storedUser?.userID;
 
   useEffect(() => {
     if (!userId) return;
-
     const BASE_URL = "http://localhost:8080/rideloopdb";
 
     const fetchData = async () => {
       try {
-        // Fetch user profile
         const userRes = await axios.get(`${BASE_URL}/users/${userId}`);
         const userProfile = userRes.data.user;
         setProfile(userProfile);
-
-        // Store profileID in localStorage if available
         if (userProfile?.profileID) {
           localStorage.setItem("profileID", userProfile.profileID);
-        } else {
-          // Optional: remove if not found
-          localStorage.removeItem("profileID");
         }
 
-        // Fetch profile stats
         const statsRes = await axios.get(`${BASE_URL}/profiles/user/${userId}`);
         if (statsRes.data.quickStats) setQuickStats(statsRes.data.quickStats);
 
-        // Fetch all cars and filter available ones
         const carsRes = await axios.get(`${BASE_URL}/api/cars/all`);
         const available = carsRes.data.filter(car => car.status === "available");
         setAvailableCars(available);
-
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
       } finally {
@@ -53,6 +44,34 @@ function RenterDashboard() {
 
     fetchData();
   }, [userId]);
+
+  // ===== Handle Book Now =====
+  const handleBookNow = () => {
+    setShowLocationPrompt(true);
+  };
+
+  // ===== Get Location =====
+  const handleShareLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setLocation(userLocation);
+          alert(`📍 Location shared! Latitude: ${userLocation.lat}, Longitude: ${userLocation.lng}`);
+          setShowLocationPrompt(false);
+          // You can now redirect or proceed with booking logic here
+        },
+        () => {
+          alert("⚠️ Please enable location access to continue.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  };
 
   return (
     <div className="dashboard-container">
@@ -69,7 +88,7 @@ function RenterDashboard() {
             <div className="dropdown-menu">
               <Link to="/Profile">My Profile</Link>
               <Link to="/Wallet">Wallet</Link>
-              <Link to="/Incidents">Support</Link>
+              <Link to="/Incident">Support</Link>
               <Link to="/logout">Logout</Link>
             </div>
           </div>
@@ -83,17 +102,15 @@ function RenterDashboard() {
           <li><Link to="/Rentals">My Rentals</Link></li>
           <li><Link to="/Wallet">Wallet</Link></li>
           <li><Link to="/notifications">Notifications</Link></li>
-          <li><Link to="/incidents">Incidents</Link></li>
+          <li><Link to="/incident">Incidents</Link></li>
         </ul>
       </nav>
 
       {/* MAIN CONTENT */}
       <main className="dashboard-main">
         <section className="welcome-banner">
-          <h2>
-            Welcome back, {storedUser?.username || "Loading..."} 👋 Ready for your next trip?
-          </h2>
-          <button className="primary-btn">Book a Car</button>
+          <h2>Welcome back, {storedUser?.username || "Loading..."} 👋 Ready for your next trip?</h2>
+          <button className="primary-btn" onClick={handleBookNow}>Book a Car</button>
         </section>
 
         <section className="quick-stats">
@@ -121,7 +138,9 @@ function RenterDashboard() {
                 <div className="car-card" key={car.carId}>
                   <p><strong>{car.brand} {car.model}</strong></p>
                   <p>Rate: ZAR {car.rentalRate}/day</p>
-                  <button className="primary-btn">Book Now</button>
+                  <button className="primary-btn" onClick={handleBookNow}>
+                    Book Now
+                  </button>
                 </div>
               ))
             ) : (
@@ -132,6 +151,20 @@ function RenterDashboard() {
 
         <RideProcess />
       </main>
+
+      {/* LOCATION MODAL */}
+      {showLocationPrompt && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>📍 Share Your Location</h3>
+            <p>We need your location to show cars available near you.</p>
+            <div className="modal-actions">
+              <button className="primary-btn" onClick={handleShareLocation}>Share Location</button>
+              <button className="cancel-btn" onClick={() => setShowLocationPrompt(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
