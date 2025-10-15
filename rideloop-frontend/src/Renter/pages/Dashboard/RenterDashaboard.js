@@ -88,7 +88,7 @@ function RenterDashboard() {
             <div className="dropdown-menu">
               <Link to="/Profile">My Profile</Link>
               <Link to="/Wallet">Wallet</Link>
-              <Link to="/Incident">Support</Link>
+              <Link to="/Incidents">Support</Link>
               <Link to="/logout">Logout</Link>
             </div>
           </div>
@@ -102,7 +102,7 @@ function RenterDashboard() {
           <li><Link to="/Rentals">My Rentals</Link></li>
           <li><Link to="/Wallet">Wallet</Link></li>
           <li><Link to="/notifications">Notifications</Link></li>
-          <li><Link to="/incident">Incidents</Link></li>
+          <li><Link to="/Incidents">Incidents</Link></li>
         </ul>
       </nav>
 
