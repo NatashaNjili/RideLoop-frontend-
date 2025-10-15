@@ -31,9 +31,9 @@ import DeleteReport from "./Admin/pages/Reports/DeleteReport"
 import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
 import EditCar from './Admin/pages/Cars/EditCar';
 import Rentals from './Renter/pages/Dashboard/Rentals';
-import incident from './Renter/pages/Dashboard/Incident'; 
 import Wallet from './Renter/pages/Dashboard/Wallet';
 import Support from './Renter/pages/Dashboard/Support';
+import Incident from "./Renter/pages/Dashboard/Incident";
 
 function App() {
   return (
@@ -68,7 +68,7 @@ function App() {
         <Route path="/Wallet" element={<Wallet/>} />
         <Route path="/Support" element={<Support/>} />
         <Route path="/RentalAction" element={<RentalAction />} />
-                <Route path="/incident" element={<incident/>} />
+        <Route path="/Incidents" element={<Incident />} />
 
 
       {/* Fallback route for debugging */}
