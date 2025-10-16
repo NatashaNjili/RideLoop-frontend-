@@ -1,172 +1,237 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
+import logo from "../../../assets/logo.png";
 import "../../pagescss/Incident.css";
 
-function Incident() {
-  const [incidents, setIncidents] = useState([]);
-  const [currentRental, setCurrentRental] = useState(null);
-  const [type, setType] = useState("");
-  const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+const RENTAL_API = "http://localhost:8080/rideloopdb/rental/getAll";
+const PROFILE_API = "http://localhost:8080/rideloopdb/profiles";
+const INCIDENT_API = "http://localhost:8080/rideloopdb/incidents";
+const CAR_API = "http://localhost:8080/rideloopdb/api/cars";
 
-  const BASE_URL = "http://localhost:8080/rideloopdb";
+const Incident = () => {
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    const profileID = localStorage.getItem("profileID");
 
-  // 1️⃣ Get logged-in user
-  const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-  const userId = storedUser?.userID;
+    const [latestRental, setLatestRental] = useState(null);
+    const [profile, setProfile] = useState(null);
+    const [car, setCar] = useState(null);
+    const [type, setType] = useState("");
+    const [description, setDescription] = useState("");
+    const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(true);
 
-  // 2️⃣ Fetch the user's profile (backend endpoint: /profiles/user/{userId})
-  const fetchProfile = useCallback(async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/profiles/user/${userId}`);
-      return res.data; // CustomerProfile
-    } catch (err) {
-      console.error("Error fetching profile:", err);
-      // If profile not found (404), treat it as 'no profile yet' and fall back to userId
-      if (err.response && err.response.status === 404) {
-        return null;
-      }
-      setError("Failed to fetch user profile.");
-      return null;
-    }
-  }, [userId]);
+    // ✅ Fetch rental, profile, and car info
+    useEffect(() => {
+        const fetchRentalDetails = async () => {
+            if (!profileID) {
+                setMessage("Profile ID not found. Please log in again.");
+                setLoading(false);
+                return;
+            }
 
-  // 3️⃣ Fetch latest rental for this profile
-  const fetchLatestRental = async (customerId) => {
-    try {
-      const res = await axios.get(`${BASE_URL}/rental/getAll`);
-      const rentals = Array.isArray(res.data) ? res.data : [];
-      // Filter rentals for this customer
-      const myRentals = rentals.filter(
-        (r) => Number(r.customerID || r.customerId) === Number(customerId)
-      );
-      // Sort by startDate descending and pick first active or latest rental
-      const latest = myRentals
-        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
-        .find((r) => r.status?.toLowerCase() !== "completed" && r.status?.toLowerCase() !== "cancelled")
-        || myRentals[0] || null;
+            try {
+                // 1️⃣ Fetch all rentals
+                const rentalRes = await axios.get(RENTAL_API);
+                const userRentals = rentalRes.data.filter(
+                    (r) => r.customerID === parseInt(profileID)
+                );
 
-      setCurrentRental(latest);
-    } catch (err) {
-      console.error("Error fetching latest rental:", err);
-      setError("Failed to fetch latest rental.");
-    }
-  };
+                if (userRentals.length === 0) {
+                    setMessage("No rentals found for your profile.");
+                    setLoading(false);
+                    return;
+                }
 
-  // 4️⃣ Fetch incidents for current rental
-  const fetchIncidents = async (rentalId) => {
-    try {
-      if (!rentalId) return setIncidents([]);
-      const res = await axios.get(`${BASE_URL}/incidents/rental/${rentalId}`);
-      setIncidents(Array.isArray(res.data) ? res.data : [res.data]);
-    } catch (err) {
-      console.error("Error fetching incidents:", err);
-      setError("Failed to load incidents.");
-    }
-  };
+                // 2️⃣ Find latest rental
+                const latest = userRentals.reduce((prev, current) =>
+                    new Date(prev.startDate) > new Date(current.startDate) ? prev : current
+                );
+                setLatestRental(latest);
 
-  // 5️⃣ Handle new incident
-  const handleCreateIncident = async (e) => {
-    e.preventDefault();
-    if (!currentRental) return alert("No active rental to report incident.");
-    const rentalId = currentRental.rentalID ?? currentRental.rentalId ?? currentRental.id;
+                // 3️⃣ Fetch profile info
+                try {
+                    const profileRes = await axios.get(`${PROFILE_API}/${profileID}`);
+                    setProfile(profileRes.data);
+                } catch (err) {
+                    console.warn("Could not fetch profile details.", err);
+                    setProfile({ firstName: "Unknown", lastName: "" });
+                }
 
-    try {
-      await axios.post(`${BASE_URL}/incidents/create`, null, {
-        params: { type, description, rentalId },
-      });
-      alert("Incident reported successfully!");
-      setType("");
-      setDescription("");
-      fetchIncidents(rentalId);
-    } catch (err) {
-      console.error("Error creating incident:", err);
-      alert("Failed to create incident.");
-    }
-  };
+                // 4️⃣ Fetch car info
+                if (latest.carID) {
+                    try {
+                        const carRes = await axios.get(`${CAR_API}/${latest.carID}`);
+                        setCar(carRes.data);
+                    } catch (err) {
+                        console.warn("Could not fetch car info.", err);
+                        setCar({
+                            brand: "Unknown",
+                            model: "",
+                            year: "",
+                            licensePlate: "Unknown",
+                            rentalRate: "Unknown",
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching rental details:", err);
+                setMessage("Failed to fetch rental details.");
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  // 6️⃣ Load data on mount
-  useEffect(() => {
-    if (!userId) {
-      setError("No logged-in user found.");
-      setLoading(false);
-      return;
-    }
+        fetchRentalDetails();
+    }, [profileID]);
 
-    const loadData = async () => {
-      setLoading(true);
-      const profile = await fetchProfile();
-      // Use profile.profileID when available; otherwise fall back to userId
-      const lookupId = profile?.profileID ?? profile?.profileId ?? userId;
-      if (lookupId) await fetchLatestRental(lookupId);
-      setLoading(false);
+    // ✅ Submit incident report
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!latestRental?.rentalID) {
+            setMessage("No rental found to report incident for.");
+            return;
+        }
+
+        try {
+            await axios.post(
+                `${INCIDENT_API}/create?type=${encodeURIComponent(
+                    type
+                )}&description=${encodeURIComponent(
+                    description
+                )}&rentalId=${latestRental.rentalID}`
+            );
+            setMessage("Incident reported successfully!");
+            setType("");
+            setDescription("");
+        } catch (err) {
+            console.error("Error creating incident:", err);
+            setMessage("Failed to create incident. Please try again.");
+        }
     };
 
-    loadData();
-  }, [userId, fetchProfile]);
+    if (!loggedInUser) return <p>Please log in to report an incident.</p>;
+    if (loading) return <p>Loading your latest rental...</p>;
 
-  // Fetch incidents when current rental changes
-  useEffect(() => {
-    const rentalId = currentRental?.rentalID ?? currentRental?.rentalId ?? currentRental?.id;
-    if (rentalId) fetchIncidents(rentalId);
-  }, [currentRental]);
+    return (
+        <div className="dashboard-container">
+            {/* Header */}
+            <header className="top-bar">
+                <div className="top-left">
+                    <img src={logo} alt="RideLoop Logo" className="logo-image" />
+                </div>
+                <button className="hamburger">☰</button>
+            </header>
 
-  if (loading) return <p>Loading incidents...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+            {/* Sidebar Navigation */}
+            <nav className="dashboard-nav">
+                <ul>
+                    <li>
+                        <Link to="/RenterDashboard">Home</Link>
+                    </li>
+                    <li>
+                        <Link to="/profile">My Profile</Link>
+                    </li>
+                    <li>
+                        <Link to="/rentals">My Rentals</Link>
+                    </li>
+                    <li>
+                        <Link to="/wallet">Wallet</Link>
+                    </li>
+                    <li>
+                        <Link to="/notifications">Notifications</Link>
+                    </li>
+                    <li>
+                        <Link to="/incident" className="active">
+                            Incidents
+                        </Link>
+                    </li>
+                </ul>
+            </nav>
 
-  return (
-    <div className="incident-container">
-      <h2>Report Incident</h2>
+            {/* Main Content */}
+            <main className="incident-main">
+                <div className="incident-card">
+                    <h2>Report an Incident</h2>
 
-      <form onSubmit={handleCreateIncident}>
-        <div>
-          <label>Type:</label>
-          <select value={type} onChange={(e) => setType(e.target.value)} required>
-            <option value="">Select incident type</option>
-            <option value="Vehicle Damage">Vehicle Damage</option>
-            <option value="Late Return">Late Return</option>
-            <option value="Accident">Accident</option>
-            <option value="Mechanical Failure">Mechanical Failure</option>
-            <option value="Traffic Fine">Traffic Fine</option>
-            <option value="Other">Other</option>
-          </select>
+                    {latestRental ? (
+                        <div className="rental-info">
+                            <h3>
+                                <strong>Customer:</strong>{" "}
+                                {profile
+                                    ? `${profile.firstName} ${profile.lastName}`
+                                    : "Unknown"}
+                            </h3>
+                            <p>
+                                <strong>Car:</strong>{" "}
+                                {car ? `${car.brand} ${car.model} (${car.year})` : "Unknown"}
+                            </p>
+                            <p>
+                                <strong>License Plate:</strong>{" "}
+                                {car ? car.licensePlate : "Unknown"}
+                            </p>
+                            <p>
+                                <strong>Rental Rate:</strong>{" "}
+                                {car ? `R${car.rentalRate}` : "Unknown"}
+                            </p>
+                            <p>
+                                <strong>Start Date:</strong> {latestRental.startDate}
+                            </p>
+                            <p>
+                                <strong>End Date:</strong> {latestRental.endDate}
+                            </p>
+                        </div>
+                    ) : (
+                        <p>{message}</p>
+                    )}
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="incident-form">
+                        <div className="form-group">
+                            <label>Incident Type</label>
+                            <select
+                                value={type}
+                                onChange={(e) => setType(e.target.value)}
+                                required
+                            >
+                                <option value="">-- Select Type --</option>
+                                <option value="Accident">Accident</option>
+                                <option value="Damage">Damage</option>
+                                <option value="Late Return">Late Return</option>
+                                <option value="Payment Issue">Payment Issue</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Description</label>
+                            <textarea
+                                placeholder="Describe the incident..."
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="primary-btn"
+                            disabled={!latestRental?.rentalID}
+                        >
+                            Submit Incident
+                        </button>
+                    </form>
+
+                    {message && <p className="message">{message}</p>}
+                </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="dashboard-footer">
+                <p>© 2025 RideLoop. All rights reserved.</p>
+            </footer>
         </div>
-
-        <div>
-          <label>Description:</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter incident description"
-            required
-          />
-        </div>
-
-        <button type="submit">Report Incident</button>
-      </form>
-
-      <h3>My Incidents</h3>
-      {incidents.length === 0 ? (
-        <p>No incidents reported yet.</p>
-      ) : (
-        <ul>
-          {incidents.map((inc) => (
-            <li key={inc.incidentID ?? inc.id}>
-              <strong>{inc.type}</strong> — {inc.description} <br />
-              <small>
-                Date: {new Date(inc.dateReported || inc.date || inc.createdAt).toLocaleString()}
-              </small>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+    );
+};
 
 export default Incident;
-
-
-
