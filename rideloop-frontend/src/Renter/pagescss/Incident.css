@@ -1,119 +1,223 @@
 /* INCIDENT PAGE STYLING */
 /* Author: Swatsi Ratia | RideLoop UI */
 
-.incident-container {
-  max-width: 900px;
-  margin: 2rem auto;
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  font-family: "Poppins", sans-serif;
+/* === GLOBAL DASHBOARD STYLING === */
+.dashboard-container {
+    font-family: "Poppins", sans-serif;
+    background: #f8fafc;
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.incident-container h2 {
-  text-align: center;
-  color: #10405c;
-  margin-bottom: 1rem;
+/* === HEADER BAR === */
+.top-bar {
+    background: #007bff;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.incident-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background-color: #f9fafc;
-  border: 1px solid #e0e0e0;
-  padding: 1.5rem;
-  border-radius: 12px;
+.logo-image {
+    height: 45px;
 }
 
-.incident-form label {
-  font-weight: 600;
-  color: #333;
-  display: block;
-  margin-bottom: 0.4rem;
+.hamburger {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
 }
 
-.incident-form input,
-.incident-form select,
-.incident-form textarea {
-  width: 100%;
-  padding: 0.7rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 1rem;
-  background-color: #fff;
-  transition: border-color 0.2s ease;
+/* === NAVBAR === */
+.dashboard-nav {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: center;
 }
 
-.incident-form input:focus,
-.incident-form select:focus,
-.incident-form textarea:focus {
-  outline: none;
-  border-color: #10405c;
-  box-shadow: 0 0 0 3px rgba(16, 64, 92, 0.15);
+.dashboard-nav ul {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    margin: 0;
+    padding: 1rem 0;
 }
 
-.incident-form button {
-  background-color: #9a0d10;
-  color: white;
-  border: none;
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 600;
+.dashboard-nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: 0.2s;
 }
 
-.incident-form button:hover {
-  background-color: #c0181b;
-  transform: scale(1.02);
+.dashboard-nav a:hover,
+.dashboard-nav a.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 4px;
 }
 
-/* INCIDENT LIST */
-.incident-list {
-  list-style: none;
-  margin-top: 1.5rem;
-  padding: 0;
+/* === INCIDENT MAIN CARD === */
+.incident-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem;
 }
 
-.incident-list li {
-  background: #f5f7fa;
-  margin-bottom: 1rem;
-  padding: 1rem 1.2rem;
-  border-radius: 12px;
-  border-left: 5px solid #10405c;
-  transition: background 0.3s ease;
-}
-
-.incident-list li:hover {
-  background: #eef3f7;
-}
-
-.incident-list strong {
-  color: #10405c;
-  font-weight: 700;
-}
-
-.incident-list small {
-  color: #555;
-  display: block;
-  font-size: 0.9rem;
-  margin-top: 0.2rem;
-}
-
-/* RESPONSIVE */
-@media (max-width: 600px) {
-  .incident-container {
-    padding: 1.2rem;
-  }
-
-  .incident-form {
-    padding: 1rem;
-  }
-
-  .incident-form button {
+.incident-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 600px;
     width: 100%;
-  }
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.4s ease-in;
+}
+
+.incident-card h2 {
+    text-align: center;
+    color: #007bff;
+    margin-bottom: 1.5rem;
+}
+
+/* === FORM === */
+.incident-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.form-group select,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #007bff;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* === BUTTONS === */
+.primary-btn {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.primary-btn:hover:enabled {
+    background: #0056b3;
+}
+
+.primary-btn:disabled {
+    background: #a0c4ff;
+    cursor: not-allowed;
+}
+
+/* === MESSAGE === */
+.message {
+    text-align: center;
+    margin-top: 1rem;
+    color: #007bff;
+    font-weight: 500;
+}
+
+/* === INCIDENT LIST TABLE === */
+.incident-list {
+    margin-top: 2rem;
+}
+
+.incident-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.incident-list th,
+.incident-list td {
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    text-align: left;
+    font-size: 15px;
+}
+
+.incident-list th {
+    background: #f1f5f9;
+    color: #007bff;
+    font-weight: 600;
+}
+
+.incident-list tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+/* === FOOTER === */
+.dashboard-footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 14px;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    color: #555;
+}
+
+/* === ANIMATION === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === RESPONSIVE FIXES === */
+@media (max-width: 768px) {
+    .dashboard-nav ul {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .incident-main {
+        padding: 1rem;
+    }
+
+    .incident-card {
+        padding: 1.5rem;
+    }
 }
