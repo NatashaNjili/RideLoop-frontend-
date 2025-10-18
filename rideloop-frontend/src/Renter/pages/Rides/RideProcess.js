@@ -6,6 +6,7 @@ import RideInfo from './RideInfo';
 import { updateCarLocation } from '../../../Admin/pages/Cars/CarSandR';
 import  RentalAction  from "./RentalAction";
 import { processPaymentForRental, showPaymentSuccessNotification } from './Payment';
+import { useNotifications } from "../context/NotificationsContext";
 // Helper: Delay for animation
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -41,6 +42,8 @@ function RideProcess() {
   const [showThankYou, setShowThankYou] = useState(false);
   const [isAnimatingDrive, setIsAnimatingDrive] = useState(false);
   const [rideDistance, setRideDistance] = useState(null);
+  const [rideSummary, setRideSummary] = useState(null);
+  const { addNotification } = useNotifications();
 
   // Toggle to trigger refresh in Location
   const [refreshTrigger, setRefreshTrigger] = useState(false);
@@ -176,14 +179,31 @@ const rental = await RentalAction.createRental({
 
 console.log('✅ Rental created:', rental);
 
-// 💳 Process payment
-try {
-  const payment = await processPaymentForRental(rental);
-  showPaymentSuccessNotification(rental, payment); // 💬 "Paid R124.50 to RideLoop"
-} catch (err) {
-  console.warn("Payment failed, but ride completed.");
-  alert("Payment failed. Please update your payment method in settings.");
-}
+// 💳 Process payment + show summary
+     try {
+         const payment = await processPaymentForRental(rental);
+         showPaymentSuccessNotification(rental, payment);
+
+         addNotification({
+             id: rental.rentalID, // unique
+             title: "Ride Completed",
+             message: `You completed a ride with Car: ${acceptedCar.brand} ${acceptedCar.model}. Paid R${payment.paymentAmount.toFixed(2)}.`,
+             date: new Date().toISOString(),
+         });
+
+         // ✅ Save summary for receipt popup
+         setRideSummary({
+             rental,
+             payment,
+             distanceInKm
+         });
+
+         setShowThankYou(true); // show receipt
+     } catch (err) {
+         console.warn("Payment failed, but ride completed.");
+         alert("Payment failed. Please update your payment method in settings.");
+     }
+
 
 // Continue with UI updates
 setRefreshTrigger(prev => !prev);
@@ -191,13 +211,15 @@ setShowThankYou(true);
 
 };
   // Close thank you message
-  const handleThankYouClose = () => {
-    setShowThankYou(false);
-    setAcceptedCar(null);
-    setRideDistance(null);
-  };
+    const handleThankYouClose = () => {
+        setShowThankYou(false);
+        setAcceptedCar(null);
+        setRideDistance(null);
+        setRideSummary(null); // reset summary
+    };
 
-  return (
+
+    return (
     <div>
       {!coords ? (
         <LocationPermission setCoords={setCoords} />
@@ -213,7 +235,7 @@ setShowThankYou(true);
             isInDrivingMode={isInDrivingMode}
             showThankYou={showThankYou}
             onMapClick={handleMapClick}
-            refreshCars={refreshTrigger} 
+            refreshCars={refreshTrigger}
           />
 
           {/* Popup after arriving at car */}
@@ -232,19 +254,25 @@ setShowThankYou(true);
           )}
 
           {/* Thank You Popup */}
-          {showThankYou && (
-            <div
-              className="thank-you-overlay"
-              style={thankYouOverlayStyle}
-              onClick={handleThankYouClose}
-            >
-              <div style={thankYouBoxStyle}>
-                <h2>🎉 Ride Complete!</h2>
-                
-                <small>Click anywhere to continue...</small>
-              </div>
-            </div>
-          )}
+            {/* Thank You Popup / Receipt */}
+            {showThankYou && rideSummary && (
+                <div
+                    className="thank-you-overlay"
+                    style={thankYouOverlayStyle}
+                    onClick={handleThankYouClose}
+                >
+                    <div style={thankYouBoxStyle}>
+                        <h2 style={{ color: "#000", fontSize: "20px" }}>🎉 Ride Complete!</h2>
+                        <p><strong>Distance:</strong> {rideSummary.distanceInKm.toFixed(2)} km</p>
+                        <p><strong>Amount Paid:</strong> R{rideSummary.payment.paymentAmount.toFixed(2)}</p>
+                        <p><strong>Payment Method:</strong> {rideSummary.payment.paymentMethod}</p>
+                        <p><strong>Status:</strong> ✅ {rideSummary.payment.paymentStatus}</p>
+                        <p><strong>Date:</strong> {new Date(rideSummary.payment.paymentDate).toLocaleString()}</p>
+                        <hr />
+                        <small>Click anywhere to continue...</small>
+                    </div>
+                </div>
+            )}
         </>
       )}
     </div>

@@ -31,12 +31,16 @@ import DeleteReport from "./Admin/pages/Reports/DeleteReport"
 import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
 import EditCar from './Admin/pages/Cars/EditCar';
 import Rentals from './Renter/pages/Dashboard/Rentals';
+import incident from './Renter/pages/Dashboard/Incident'; 
 import Wallet from './Renter/pages/Dashboard/Wallet';
 import Support from './Renter/pages/Dashboard/Support';
-import Incident from "./Renter/pages/Dashboard/Incident";
+import Notifications from './Renter/pages/Dashboard/Notifications';
+import { NotificationsProvider } from './Renter/pages/context/NotificationsContext';
+
 
 function App() {
   return (
+      <NotificationsProvider>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/AdminDashboard" element={<AdminDashboard />} />
@@ -68,13 +72,15 @@ function App() {
         <Route path="/Wallet" element={<Wallet/>} />
         <Route path="/Support" element={<Support/>} />
         <Route path="/RentalAction" element={<RentalAction />} />
-        <Route path="/Incidents" element={<Incident />} />
-
+                <Route path="/incident" element={<incident/>} />
+        <Route path="/" element={<RideProcess />} />
+        <Route path="/notifications" element={<Notifications />} />
 
       {/* Fallback route for debugging */}
       <Route path="*" element={<div style={{background: 'red', color: 'white', padding: 20, fontWeight: 'bold', fontSize: 24}}>DEBUG: Fallback route rendered. Routing is working.</div>} />
 
     </Routes>
+      </NotificationsProvider>
   );
 }
 
