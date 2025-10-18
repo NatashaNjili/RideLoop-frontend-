@@ -12,83 +12,67 @@ function RenterDashboard() {
   const [loading, setLoading] = useState(true);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [location, setLocation] = useState(null);
-  const [error, setError] = useState("");
 
-  const BASE_URL = "http://localhost:8080/rideloopdb";
-
-  // Get logged-in user from localStorage
   const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
   const userId = storedUser?.userID;
 
   useEffect(() => {
-    if (!userId) {
-      setError("No logged-in user found. Please log in.");
-      setLoading(false);
-      return;
-    }
+    if (!userId) return;
+    const BASE_URL = "http://localhost:8080/rideloopdb";
 
-    const fetchDashboardData = async () => {
+    const fetchData = async () => {
       try {
-        // 1️⃣ Fetch user profile
         const userRes = await axios.get(`${BASE_URL}/users/${userId}`);
         const userProfile = userRes.data.user;
         setProfile(userProfile);
-
-        // 2️⃣ Optionally store profileID in localStorage
         if (userProfile?.profileID) {
           localStorage.setItem("profileID", userProfile.profileID);
         }
 
-        // 3️⃣ Fetch quickStats if available (from userProfile or separate endpoint)
-        if (userProfile.quickStats) {
-          setQuickStats(userProfile.quickStats);
-        }
+        const statsRes = await axios.get(`${BASE_URL}/profiles/user/${userId}`);
+        if (statsRes.data.quickStats) setQuickStats(statsRes.data.quickStats);
 
-        // 4️⃣ Fetch available cars
         const carsRes = await axios.get(`${BASE_URL}/api/cars/all`);
+        console.log("These are the cars:", carsRes);
         const available = carsRes.data.filter(car => car.status === "available");
         setAvailableCars(available);
-
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
-        setError("Failed to load dashboard data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDashboardData();
+    fetchData();
   }, [userId]);
 
   // ===== Handle Book Now =====
-  const handleBookNow = () => setShowLocationPrompt(true);
+  const handleBookNow = () => {
+    setShowLocationPrompt(true);
+  };
 
   // ===== Get Location =====
   const handleShareLocation = () => {
-    if (!navigator.geolocation) {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setLocation(userLocation);
+          alert(`📍 Location shared! Latitude: ${userLocation.lat}, Longitude: ${userLocation.lng}`);
+          setShowLocationPrompt(false);
+          // You can now redirect or proceed with booking logic here
+        },
+        () => {
+          alert("⚠️ Please enable location access to continue.");
+        }
+      );
+    } else {
       alert("Geolocation is not supported by your browser.");
-      return;
     }
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        setLocation(userLocation);
-        alert(`📍 Location shared! Latitude: ${userLocation.lat}, Longitude: ${userLocation.lng}`);
-        setShowLocationPrompt(false);
-        // Proceed with booking logic here
-      },
-      () => {
-        alert("⚠️ Please enable location access to continue.");
-      }
-    );
   };
-
-  if (loading) return <p>Loading dashboard...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div className="dashboard-container">
@@ -105,7 +89,7 @@ function RenterDashboard() {
             <div className="dropdown-menu">
               <Link to="/Profile">My Profile</Link>
               <Link to="/Wallet">Wallet</Link>
-              <Link to="/Incidents">Support</Link>
+              <Link to="/Incident">Support</Link>
               <Link to="/logout">Logout</Link>
             </div>
           </div>
@@ -119,14 +103,14 @@ function RenterDashboard() {
           <li><Link to="/Rentals">My Rentals</Link></li>
           <li><Link to="/Wallet">Wallet</Link></li>
           <li><Link to="/notifications">Notifications</Link></li>
-          <li><Link to="/Incidents">Incidents</Link></li>
+          <li><Link to="/incident">Incidents</Link></li>
         </ul>
       </nav>
 
       {/* MAIN CONTENT */}
       <main className="dashboard-main">
         <section className="welcome-banner">
-          <h2>Welcome back, {profile?.username || "User"} 👋 Ready for your next trip?</h2>
+          <h2>Welcome back, {storedUser?.username || "Loading..."} 👋 Ready for your next trip?</h2>
           <button className="primary-btn" onClick={handleBookNow}>Book a Car</button>
         </section>
 
@@ -148,16 +132,20 @@ function RenterDashboard() {
         <section className="available-cars">
           <h3>🚘 Available Cars Nearby</h3>
           <div className="cars-grid">
-            {availableCars.length === 0 ? (
-              <p>No available cars nearby</p>
-            ) : (
+            {loading ? (
+              <p>Loading cars...</p>
+            ) : availableCars.length > 0 ? (
               availableCars.map(car => (
                 <div className="car-card" key={car.carId}>
                   <p><strong>{car.brand} {car.model}</strong></p>
                   <p>Rate: ZAR {car.rentalRate}/day</p>
-                  <button className="primary-btn" onClick={handleBookNow}>Book Now</button>
+                  <button className="primary-btn" onClick={handleBookNow}>
+                    Book Now
+                  </button>
                 </div>
               ))
+            ) : (
+              <p>No available cars nearby</p>
             )}
           </div>
         </section>
@@ -183,4 +171,3 @@ function RenterDashboard() {
 }
 
 export default RenterDashboard;
-
