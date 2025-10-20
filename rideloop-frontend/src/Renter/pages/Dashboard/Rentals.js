@@ -1,35 +1,32 @@
 // src/Renter/pages/Dashboard/Rentals.js
 import React, { useEffect, useState } from 'react';
 import RentalAction from '../Rides/RentalAction';
-import { fetchCarById } from '../../../Admin/pages/Cars/CarSandR'; // Reuse existing
+import { fetchCarById } from '../../../Admin/pages/Cars/CarSandR';
 import { FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 import '../../pagescss/Rentals.css';
 
-// Helper: Calculate distance from pickup & dropoff location IDs (if you store coords)
-// But since you don't have coords here, we'll skip distance unless backend sends it.
-// Alternative: Store distance in rental table (recommended)
-
 const Rentals = () => {
-  const [rentalItems, setRentalItems] = useState([]); // Will hold { rental, car }
+  const [rentalItems, setRentalItems] = useState([]); // { rental, car }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [quickStats, setQuickStats] = useState({ trips: 0, distance: 0, spent: 0 });
 
   useEffect(() => {
     const fetchRentalsWithCars = async () => {
       setLoading(true);
       setError('');
       try {
-        // 1. Fetch rentals
         const rentals = await RentalAction.getRentalsForUser();
 
         if (!Array.isArray(rentals) || rentals.length === 0) {
           setRentalItems([]);
+          setQuickStats({ trips: 0, distance: 0, spent: 0 });
           setLoading(false);
           return;
         }
 
-        // 2. Fetch car details for each rental
+        // Fetch car details
         const rentalsWithCars = await Promise.all(
           rentals.map(async (rental) => {
             try {
@@ -43,9 +40,21 @@ const Rentals = () => {
         );
 
         setRentalItems(rentalsWithCars);
+
+        // 🔢 Calculate stats from rentals
+        const trips = rentals.length;
+        const distance = rentals.reduce((sum, r) => sum + (r.distanceInKm || 0), 0);
+        const spent = rentals.reduce((sum, r) => sum + (parseFloat(r.totalCost) || 0), 0);
+
+        setQuickStats({
+          trips,
+          distance: parseFloat(distance.toFixed(2)),
+          spent: parseFloat(spent.toFixed(2)),
+        });
       } catch (err) {
         setError('Failed to load your rental history.');
         console.error(err);
+        setQuickStats({ trips: 0, distance: 0, spent: 0 });
       } finally {
         setLoading(false);
       }
@@ -74,15 +83,27 @@ const Rentals = () => {
     }
   };
 
-  // Optional: If you store distance in rental (e.g., rental.distanceInKm), use it.
-  // Otherwise, you can't compute it here without location coordinates.
-  // Recommendation: Add `distanceInKm` to your Rental entity.
-
   return (
     <div className="rentals-container">
       <div className="rentals-header">
         <h2>Your Rental History</h2>
       </div>
+
+      {/* ✅ Quick stats now appear RIGHT AFTER the heading */}
+      <section className="quick-stats">
+        <div className="stat-card">
+          <h4>Total Trips</h4>
+          <p>{quickStats.trips}</p>
+        </div>
+        <div className="stat-card">
+          <h4>Distance Driven (km)</h4>
+          <p>{quickStats.distance}</p>
+        </div>
+        <div className="stat-card">
+          <h4>Amount Spent (ZAR)</h4>
+          <p>R{quickStats.spent.toFixed(2)}</p>
+        </div>
+      </section>
 
       {loading ? (
         <p>Loading your rentals...</p>
@@ -96,10 +117,7 @@ const Rentals = () => {
             <div className="rental-card" key={rental.rentalID}>
               <div className="rental-card-header">
                 <h3>Rental #{rental.rentalID}</h3>
-                <div
-                  className="menu-container"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="menu-container" onClick={(e) => e.stopPropagation()}>
                   <FaEllipsisV
                     className="menu-dots"
                     onClick={(e) => {
@@ -122,24 +140,19 @@ const Rentals = () => {
                 </div>
               </div>
 
-              {/* Car Info */}
               {car ? (
                 <p><strong>Car:</strong> {car.brand} {car.model} ({car.year})</p>
               ) : (
                 <p><strong>Car:</strong> Car ID #{rental.carID}</p>
               )}
 
-              {/* Date */}
               <p><strong>Date:</strong> {rental.date}</p>
-
-              {/* Cost */}
               <p><strong>Total Paid:</strong> R{Number(rental.totalCost).toFixed(2)}</p>
 
-            
+              {/* Only show distance if it exists */}
+              {typeof rental.distanceInKm === 'number' && (
                 <p><strong>Distance:</strong> {rental.distanceInKm.toFixed(2)} km</p>
-              
-
-              
+              )}
             </div>
           ))}
         </div>
