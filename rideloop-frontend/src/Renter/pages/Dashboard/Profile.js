@@ -1,37 +1,11 @@
-
-                    <li><Link to="/RenterDashaboard">Home</Link></li>
-
-       /* eslint-disable */
+/* eslint-disable */
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import logo from "../../../assets/logo.png";
 import "../../pagescss/Profile.css";
+import NavBar from "../../../components/NavBar";
 
 const API_URL = "http://localhost:8080/rideloopdb/profiles";
-
-const terms = [
-  "You must be 18 years or older to use this service.",
-  "You agree to provide accurate personal information.",
-  "All payments must be made through our platform.",
-  "You must follow local traffic laws while driving.",
-  "Unauthorized sharing of account credentials is prohibited.",
-  "Do not damage vehicles intentionally or recklessly.",
-  "Report any accidents immediately to the platform.",
-  "Renter is responsible for fuel charges.",
-  "Insurance coverage applies as per the vehicle’s policy.",
-  "Any fines or penalties are the renter’s responsibility.",
-  "Do not use vehicles for illegal activities.",
-  "Maintain cleanliness of the vehicle during rental.",
-  "Return the vehicle on time to avoid late fees.",
-  "Follow the platform’s instructions for pickup and drop-off.",
-  "Keep your profile information up-to-date.",
-  "The platform may suspend accounts violating terms.",
-  "Disputes will be handled according to our policies.",
-  "Promotional offers are subject to platform rules.",
-  "The platform can update terms at any time with notice.",
-  "Using the platform indicates acceptance of these terms."
-];
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -40,8 +14,6 @@ const Profile = () => {
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showTerms, setShowTerms] = useState(false);
-  const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState("");
 
   const storedProfileID = localStorage.getItem("profileID");
@@ -55,16 +27,17 @@ const Profile = () => {
       }
 
       try {
+        const token = localStorage.getItem("jwtToken");
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
         let profileData;
         if (storedProfileID) {
-          const res = await axios.get(`${API_URL}/${storedProfileID}`);
+          const res = await axios.get(`${API_URL}/${storedProfileID}`, config);
           profileData = res.data;
         } else {
-          const res = await axios.get(`${API_URL}/user/${userID}`);
+          const res = await axios.get(`${API_URL}/user/${userID}`, config);
           profileData = res.data;
-          if (profileData.profileID) {
-            localStorage.setItem("profileID", profileData.profileID);
-          }
+          if (profileData.profileID) localStorage.setItem("profileID", profileData.profileID);
         }
 
         setProfile({
@@ -87,24 +60,16 @@ const Profile = () => {
         setLoading(false);
       }
     };
+
     fetchProfile();
   }, [userID, storedProfileID]);
 
+  // Auto-redirect if profile is approved
   useEffect(() => {
     if (profile?.status?.toLowerCase() === "approved") {
       navigate("/renterdashboard");
     }
   }, [profile, navigate]);
-
-  const handleAcceptTerms = async () => {
-    if (!accepted) return;
-    try {
-      await axios.put(`${API_URL}/accept-terms/${userID}`);
-      setShowTerms(false);
-    } catch (err) {
-      console.error("Error accepting terms:", err);
-    }
-  };
 
   const handleEditClick = () => {
     navigate("/editprofile", { state: { userID, profile } });
@@ -123,28 +88,10 @@ const Profile = () => {
 
   return (
     <div className="dashboard-container">
-      {/* ===== HEADER ===== */}
-      <header className="top-bar">
-        <div className="top-left">
-          <img src={logo} alt="RideLoop Logo" className="logo-image" />
-        </div>
-        <button className="hamburger">☰</button>
-      </header>
+      {/* Navbar */}
+      <NavBar />
 
-      {/* ===== NAVIGATION ===== */}
-      <nav className="dashboard-nav">
-        <ul>
-                    <li><Link to="/RenterDashboard">Home</Link></li>
-
-          <li><Link to="/profile" className="active">My Profile</Link></li>
-          <li><Link to="/rentals">My Rentals</Link></li>
-          <li><Link to="/wallet">Wallet</Link></li>
-          <li><Link to="/notifications">Notifications</Link></li>
-          <li><Link to="/incident">Incidents</Link></li>
-        </ul>
-      </nav>
-
-      {/* ===== MAIN CONTENT ===== */}
+      {/* Main content */}
       <main className="profile-main">
         <div className="profile-card">
           {profile.profilePictureUrl && (
@@ -167,7 +114,6 @@ const Profile = () => {
             </div>
           )}
 
-          {/* ===== DOCUMENTS ===== */}
           {profile.documents && (
             <div className="profile-documents">
               <h3>Uploaded Documents</h3>
@@ -182,35 +128,7 @@ const Profile = () => {
         </div>
       </main>
 
-      {/* ===== TERMS MODAL ===== */}
-      {showTerms && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Terms and Conditions</h2>
-            <ol className="terms-list">
-              {terms.map((term, index) => <li key={index}>{term}</li>)}
-            </ol>
-            <div className="accept-terms">
-              <input
-                type="checkbox"
-                id="accept"
-                checked={accepted}
-                onChange={() => setAccepted(!accepted)}
-              />
-              <label htmlFor="accept">I accept the terms and conditions</label>
-            </div>
-            <button
-              className={`setup-profile-btn ${!accepted ? "disabled" : ""}`}
-              onClick={handleAcceptTerms}
-              disabled={!accepted}
-            >
-              Accept Terms
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ===== FOOTER ===== */}
+      {/* Footer */}
       <footer className="dashboard-footer">
         <p>© 2025 RideLoop. All rights reserved.</p>
       </footer>

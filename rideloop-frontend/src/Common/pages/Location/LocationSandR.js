@@ -1,16 +1,24 @@
+const LOCATION_BASE = 'http://localhost:8080/rideloopdb/api/locations';
+
+// Helper to get auth headers if needed
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('jwtToken');
+  return token
+    ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };
+};
+
+// Send new location to backend
 export async function sendLocationToBackend(coords) {
   const payload = {
-	 longitude: coords.lng  ,
-    latitude: coords.lat    // ← must be "latitude"
-     // ← must be "longitude"
+    latitude: coords.lat,
+    longitude: coords.lng
   };
 
   try {
-    const response = await fetch('http://localhost:8080/rideloopdb/api/locations/create', {
+    const response = await fetch(`${LOCATION_BASE}/create`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
 
@@ -25,45 +33,38 @@ export async function sendLocationToBackend(coords) {
     throw error;
   }
 }
-export async function fetchLocationById(id) {
-  const response = await fetch(`http://localhost:8080/rideloop/api/locations/${id}`);
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to fetch location: ${errorText}`);
-  }
 
-  return await response.json();
+// Fetch location by ID
+export async function fetchLocationById(id) {
+  try {
+    const response = await fetch(`${LOCATION_BASE}/${id}`, {
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch location: ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching location by ID:', error);
+    throw error;
+  }
 }
 
-
-// src/api/LocationSandR.js (or wherever this is defined)
+// Fetch location by coordinates
 export async function getLocationByCoordinates({ lat, lng }) {
+  if (lat == null || lng == null) {
+    throw new Error(`Invalid coordinates: lat=${lat}, lng=${lng}`);
+  }
+
+  const url = new URL(`${LOCATION_BASE}/search`);
+  url.searchParams.append('latitude', Number(lat));
+  url.searchParams.append('longitude', Number(lng));
+
   try {
-    // 🔒 Validate inputs
-    if (lat == null || lng == null) {
-      throw new Error(`Invalid coordinates: lat=${lat}, lng=${lng}`);
-    }
-
-    // Ensure they are numbers
-    const latitude = Number(lat);
-    const longitude = Number(lng);
-
-    if (!isFinite(latitude) || !isFinite(longitude)) {
-      throw new Error(`Invalid coordinate values: lat=${lat}, lng=${lng}`);
-    }
-
-    // Build URL safely
-    const url = new URL('http://localhost:8080/rideloopdb/api/locations/search');
-    url.searchParams.append('latitude', latitude);
-    url.searchParams.append('longitude', longitude); // No .toString() needed — append handles it
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
+    const response = await fetch(url.toString(), { headers: getAuthHeaders() });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -71,7 +72,6 @@ export async function getLocationByCoordinates({ lat, lng }) {
     }
 
     return await response.json();
-
   } catch (error) {
     console.error("Error fetching location by coordinates:", error);
     throw error;

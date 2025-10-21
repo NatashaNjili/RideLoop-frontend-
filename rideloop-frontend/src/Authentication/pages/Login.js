@@ -22,17 +22,23 @@ function Login() {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      const data = response.data;
+      const { user, token, message: responseMessage } = response.data;
 
-      if (data.message !== "Login successful") {
-        setMessage(data.message);
+      if (responseMessage !== "Login successful") {
+        setMessage(responseMessage);
         return;
       }
 
-      const user = data.user;
+      // Save user info without the token
       localStorage.setItem("loggedInUser", JSON.stringify(user));
-      console.log(`${user.username} (ID: ${user.userID}) login successful`);
 
+      // Save JWT token separately
+      localStorage.setItem("jwtToken", token);
+
+      console.log(`${user.username} (ID: ${user.userID}) login successful`);
+      console.log("JWT Token:", token);
+
+      // Redirect based on role
       if (user.role?.toUpperCase() === "ADMIN") {
         navigate("/AdminDashboard");
       } else {
@@ -40,7 +46,7 @@ function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      setMessage(error.response?.data?.message || "Server error. Try again later.");
+      setMessage(error.response?.data?.message || "Server error. Please try again later.");
     }
   };
 
@@ -51,13 +57,11 @@ function Login() {
         <div className="navbar-logo">
           <img src={logo} alt="RideLoop Logo" />
         </div>
-
         <div className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
           <span></span>
           <span></span>
           <span></span>
         </div>
-
         <ul className={`navbar-menu ${menuOpen ? "active" : ""}`}>
           <li><Link to="/">Home</Link></li>
           <li><Link to="/About">About</Link></li>
@@ -71,9 +75,10 @@ function Login() {
       <form className="login-form" onSubmit={handleSubmit}>
         <h2 className="login-title">Login</h2>
 
-        <label className="login-label">Email</label>
+        <label htmlFor="email" className="login-label">Email</label>
         <input
           type="email"
+          id="email"
           className="login-input"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -81,9 +86,10 @@ function Login() {
           required
         />
 
-        <label className="login-label">Password</label>
+        <label htmlFor="password" className="login-label">Password</label>
         <input
           type="password"
+          id="password"
           className="login-input"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

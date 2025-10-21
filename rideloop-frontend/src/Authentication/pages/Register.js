@@ -50,7 +50,7 @@ function Register() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/rideloopdb/users",
+        "http://localhost:8080/rideloopdb/users/register",
         formData,
         {
           params: formData.role === "ADMIN" ? { securityCode } : {},
