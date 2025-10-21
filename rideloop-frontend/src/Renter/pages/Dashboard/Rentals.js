@@ -1,195 +1,162 @@
-/* eslint-disable */
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
-import "../../pagescss/Rentals.css";
-import logo from "../../../assets/logo.png"; // ensure path is correct
-
-const BASE_URL = "http://localhost:8080/rideloopdb";
-const RENTAL_API = `${BASE_URL}/rental/getAll`;
-const PROFILE_API = `${BASE_URL}/profiles`;
-const CAR_API = `${BASE_URL}/api/cars`;
+// src/Renter/pages/Dashboard/Rentals.js
+import React, { useEffect, useState } from 'react';
+import RentalAction from '../Rides/RentalAction';
+import { fetchCarById } from '../../../Admin/pages/Cars/CarSandR';
+import { FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
+import '../../pagescss/Rentals.css';
 
 const Rentals = () => {
-  const [profile, setProfile] = useState(null);
-  const [stats, setStats] = useState({
-    totalKm: 0,
-    totalTrips: 0,
-    rewards: 0,
-    rewardGoal: 1000,
-  });
-  const [rides, setRides] = useState([]);
-  const [latestRental, setLatestRental] = useState(null);
-  const [car, setCar] = useState(null);
-  const [message, setMessage] = useState("");
+  const [rentalItems, setRentalItems] = useState([]); // { rental, car }
   const [loading, setLoading] = useState(true);
-
-  const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-  const userId = storedUser?.userID;
-  const profileID = localStorage.getItem("profileID"); // use stored profileID
+  const [error, setError] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [quickStats, setQuickStats] = useState({ trips: 0, distance: 0, spent: 0 });
 
   useEffect(() => {
-    const fetchRentalDetails = async () => {
-      if (!profileID) {
-        setMessage("Profile ID not found. Please log in again.");
-        setLoading(false);
-        return;
-      }
-
+    const fetchRentalsWithCars = async () => {
+      setLoading(true);
+      setError('');
       try {
-        // 1️⃣ Fetch all rentals for this profile
-        const rentalRes = await axios.get(RENTAL_API);
-        const userRentals = rentalRes.data.filter(
-          (r) => r.customerID === parseInt(profileID)
-        );
+        const rentals = await RentalAction.getRentalsForUser();
 
-        if (userRentals.length === 0) {
-          setMessage("No rentals found for your profile.");
+        if (!Array.isArray(rentals) || rentals.length === 0) {
+          setRentalItems([]);
+          setQuickStats({ trips: 0, distance: 0, spent: 0 });
           setLoading(false);
           return;
         }
 
-        // 2️⃣ Get latest rental
-        const latest = userRentals.reduce((prev, current) =>
-          new Date(prev.startDate) > new Date(current.startDate) ? prev : current
+        // Fetch car details
+        const rentalsWithCars = await Promise.all(
+          rentals.map(async (rental) => {
+            try {
+              const car = await fetchCarById(rental.carID);
+              return { rental, car };
+            } catch (err) {
+              console.warn(`Car not found for ID: ${rental.carID}`);
+              return { rental, car: null };
+            }
+          })
         );
-        setLatestRental(latest);
 
-        // 3️⃣ Fetch profile details
-        try {
-          const profileRes = await axios.get(`${PROFILE_API}/${profileID}`);
-          setProfile(profileRes.data);
-        } catch {
-          setProfile({ firstName: "Unknown", lastName: "" });
-        }
+        setRentalItems(rentalsWithCars);
 
-        // 4️⃣ Fetch car details
-        if (latest.carID) {
-          try {
-            const carRes = await axios.get(`${CAR_API}/${latest.carID}`);
-            setCar(carRes.data);
-          } catch {
-            setCar({
-              brand: "Unknown",
-              model: "",
-              year: "",
-              licensePlate: "Unknown",
-              rentalRate: "Unknown",
-            });
-          }
-        }
+        // 🔢 Calculate stats from rentals
+        const trips = rentals.length;
+        const distance = rentals.reduce((sum, r) => sum + (r.distanceInKm || 0), 0);
+        const spent = rentals.reduce((sum, r) => sum + (parseFloat(r.totalCost) || 0), 0);
 
-        // 5️⃣ Compute stats
-        const totalKm = userRentals.reduce((sum, r) => sum + r.kilometers, 0);
-        const totalTrips = userRentals.length;
-        const rewards = totalTrips * 50; // example: 50 points per trip
-        setStats((prev) => ({ ...prev, totalKm, totalTrips, rewards }));
-
-        // 6️⃣ Recent rides (latest 5)
-        const sortedRides = userRentals
-          .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
-          .slice(0, 5);
-        setRides(sortedRides);
+        setQuickStats({
+          trips,
+          distance: parseFloat(distance.toFixed(2)),
+          spent: parseFloat(spent.toFixed(2)),
+        });
       } catch (err) {
-        console.error("Error fetching rental details:", err);
-        setMessage("Failed to fetch rental details.");
+        setError('Failed to load your rental history.');
+        console.error(err);
+        setQuickStats({ trips: 0, distance: 0, spent: 0 });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRentalDetails();
-  }, [profileID]);
+    fetchRentalsWithCars();
+  }, []);
 
-  const rewardPercentage = Math.min((stats.rewards / stats.rewardGoal) * 100, 100);
+  useEffect(() => {
+    const handleClick = () => {
+      if (dropdownOpen !== null) setDropdownOpen(null);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [dropdownOpen]);
 
-  if (loading) return <div className="loading">Loading rentals...</div>;
+  const handleView = (id) => {
+    alert(`View details for Rental #${id}`);
+    setDropdownOpen(null);
+  };
+
+  const handleCancel = (id) => {
+    if (window.confirm('Are you sure you want to cancel this rental?')) {
+      alert(`Cancellation not implemented for Rental #${id}`);
+      setDropdownOpen(null);
+    }
+  };
 
   return (
-    <div className="dashboard-container">
-      {/* ===== HEADER ===== */}
-      <header className="top-bar">
-        <div className="top-left">
-          <img src={logo} alt="RideLoop Logo" className="logo-image" />
+    <div className="rentals-container">
+      <div className="rentals-header">
+        <h2>Your Rental History</h2>
+      </div>
+
+      {/* ✅ Quick stats now appear RIGHT AFTER the heading */}
+      <section className="quick-stats">
+        <div className="stat-card">
+          <h4>Total Trips</h4>
+          <p>{quickStats.trips}</p>
         </div>
-        <div className="top-right">
-          <button className="hamburger">☰</button>
-          <div className="dropdown-menu">
-            <Link to="/Profile">My Profile</Link>
-            <Link to="/Wallet">Wallet</Link>
-            <Link to="/Incident">Support</Link>
-            <Link to="/logout">Logout</Link>
-          </div>
+        <div className="stat-card">
+          <h4>Distance Driven (km)</h4>
+          <p>{quickStats.distance}</p>
         </div>
-      </header>
+        <div className="stat-card">
+          <h4>Amount Spent (ZAR)</h4>
+          <p>R{quickStats.spent.toFixed(2)}</p>
+        </div>
+      </section>
 
-      {/* ===== NAVBAR ===== */}
-      <nav className="dashboard-nav">
-        <ul>
-          <li><Link to="/Profile">My Profile</Link></li>
-          <li><Link to="/Rentals">My Rentals</Link></li>
-          <li><Link to="/Wallet">Wallet</Link></li>
-          <li><Link to="/Notifications">Notifications</Link></li>
-          <li><Link to="/Incident">Incidents</Link></li>
-        </ul>
-      </nav>
-
-      <main className="dashboard-main">
-       
-        <div className="rentals-container">
-          <h2 className="page-title">My Rentals</h2>
-
-          {/* Stats Cards */}
-          <div className="stats-cards">
-            <div className="stat-card">
-              <h3>{stats.totalKm} km</h3>
-              <p>Total Kilometers</p>
-            </div>
-            <div className="stat-card">
-              <h3>{stats.totalTrips}</h3>
-              <p>Total Trips</p>
-            </div>
-            <div className="stat-card reward-card">
-              <h3>{stats.rewards}</h3>
-              <p>Rewards Points</p>
-              <div className="reward-bar">
-                <div
-                  className="reward-progress"
-                  style={{ width: `${rewardPercentage}%` }}
-                ></div>
+      {loading ? (
+        <p>Loading your rentals...</p>
+      ) : error ? (
+        <p className="error-message">{error}</p>
+      ) : rentalItems.length === 0 ? (
+        <p>No rentals found.</p>
+      ) : (
+        <div className="rental-list">
+          {rentalItems.map(({ rental, car }) => (
+            <div className="rental-card" key={rental.rentalID}>
+              <div className="rental-card-header">
+                <h3>Rental #{rental.rentalID}</h3>
+                <div className="menu-container" onClick={(e) => e.stopPropagation()}>
+                  <FaEllipsisV
+                    className="menu-dots"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDropdownOpen(
+                        dropdownOpen === rental.rentalID ? null : rental.rentalID
+                      );
+                    }}
+                  />
+                  {dropdownOpen === rental.rentalID && (
+                    <div className="dropdown-menu">
+                      <button onClick={() => handleView(rental.rentalID)}>
+                        <FaEdit /> View
+                      </button>
+                      <button onClick={() => handleCancel(rental.rentalID)}>
+                        <FaTrash /> Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="reward-goal">Goal: {stats.rewardGoal} pts</p>
+
+              {car ? (
+                <p><strong>Car:</strong> {car.brand} {car.model} ({car.year})</p>
+              ) : (
+                <p><strong>Car:</strong> Car ID #{rental.carID}</p>
+              )}
+
+              <p><strong>Date:</strong> {rental.date}</p>
+              <p><strong>Total Paid:</strong> R{Number(rental.totalCost).toFixed(2)}</p>
+
+              {/* Only show distance if it exists */}
+              {typeof rental.distanceInKm === 'number' && (
+                <p><strong>Distance:</strong> {rental.distanceInKm.toFixed(2)} km</p>
+              )}
             </div>
-          </div>
-
-          {/* Recent Rides */}
-          <div className="recent-rides">
-            <h3>Recent Rides</h3>
-            <ul>
-              {rides.map((ride, index) => (
-                <li key={index}>
-                  <div className="ride-info">
-                    <span className="ride-date">
-                      {new Date(ride.startDate).toLocaleDateString()}
-                    </span>
-                    <span className="ride-etails">
-                      {ride.origin} → {ride.destination}
-                    </span>
-                    <span className="ride-km">{ride.kilometers} km</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            {rides.length === 5 && (
-              <Link to="/RentalsFull" className="see-more">
-                See More
-              </Link>
-            )}
-          </div>
-
-          {message && <p className="info-message">{message}</p>}
+          ))}
         </div>
-      </main>
+      )}
     </div>
   );
 };

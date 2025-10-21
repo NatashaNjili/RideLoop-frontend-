@@ -1,96 +1,82 @@
 // src/Common/utils/RentalAction.js
 import axios from "axios";
 import { fetchCarById } from "../../../Admin/pages/Cars/CarSandR";
+import { getLocationByCoordinates } from "../../../Common/pages/Location/LocationSandR";
 
 const RENTAL_API_URL = "http://localhost:8080/rideloopdb/rental";
-const PROFILE_URL = "http://localhost:8080/rideloopdb/profiles";
-
+const PROFILE_API_URL = "http://localhost:8080/rideloopdb/profiles";
 /**
- * Get logged-in user from localStorage
+ * Get logged-in user and profileID
  */
-const getLoggedInUser = () => {
-  const user = JSON.parse(localStorage.getItem("loggedInUser"));
-  if (!user || !user.userID) throw new Error("No authenticated user found in localStorage.");
-  return user;
+const getProfileID = () => {
+  const profileID = localStorage.getItem("profileID");
+  if (!profileID) {
+    throw new Error(
+      "Profile not found. Please complete and submit your profile first."
+    );
+  }
+  return parseInt(profileID, 10);
 };
 
-/**
- * Calculate total ride cost
- */
-const calculateCost = (distanceInKm) => {
-  const ratePerKm = 2.0;
+const calculateCost = (distanceInKm ,ratePerKm) => {
   return parseFloat((distanceInKm * ratePerKm).toFixed(2));
 };
 
-/**
- * Convert a location object to a simple string (for backend)
- */
-const locationToString = (loc) => {
-  if (!loc) return "Unknown";
-  return loc.address ?? `${loc.lat},${loc.lng}` ?? "Unknown";
-};
-
 class RentalAction {
-  /**
-   * Create rental
-   */
-  static async createRental({ startLocation, endLocation, distanceInKm, carId, startTime = new Date().toISOString() }) {
-    try {
-      const user = getLoggedInUser();
-      const customerID = Number(user.userID);
+ static async createRental({ startLocation, endLocation, distanceInKm, carId, startTime,ratePerKm }) {
+  try {
+    const customerID = getProfileID();
+    const car = await fetchCarById(carId);
+    if (!car?.carId) throw new Error(`Car not found: ${carId}`);
+    const carID = car.carId;
 
-      // Fetch car to validate
-      const fullCar = await fetchCarById(carId);
-      if (!fullCar || !fullCar.carId) throw new Error(`Car not loaded for ID: ${carId}`);
-      const carID = fullCar.carId;
+    // Get location IDs
+    const pickup = await getLocationByCoordinates({
+      lat: startLocation.latitude || startLocation.lat,
+      lng: startLocation.longitude || startLocation.lng,
+    });
+    const dropoff = await getLocationByCoordinates({
+      lat: endLocation.latitude || endLocation.lat,
+      lng: endLocation.longitude || endLocation.lng,
+    });
 
-      // Convert locations to strings
-      const pickupLocation = locationToString(startLocation);
-      const dropoffLocation = locationToString(endLocation);
-
-      // Calculate cost
-      const totalCost = calculateCost(distanceInKm);
-
-      // Prepare rental payload
-      const rentalData = {
-        carID,
-        customerID,
-        startDate: startTime.split("T")[0], // Use only date for LocalDate
-        endDate: startTime.split("T")[0],   // same day for simplicity
-        pickupLocation,
-        dropoffLocation,
-        insuranceID: 0,                     // default
-        totalCost,
-        status: "Pending",                  // default
-      };
-
-      console.log("🚀 Sending rental:", rentalData);
-
-      const response = await axios.post(`${RENTAL_API_URL}/create`, rentalData, {
-        headers: { "Content-Type": "application/json" },
-      });
-
-      console.log("✅ Rental created:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("❌ Failed to create rental:", error.message || error);
-      throw error;
+    if (!pickup?.locationID || !dropoff?.locationID) {
+      throw new Error("Could not resolve location IDs.");
     }
-  }
 
-  /**
-   * Get all rentals for logged-in user
-   */
-  static async getRentalsForUser() {
-    try {
-      const user = getLoggedInUser();
-      const response = await axios.get(`${RENTAL_API_URL}/user/${user.userID}`);
-      return response.data;
-    } catch (error) {
-      console.error("❌ Failed to fetch rentals:", error.message || error);
-      throw error;
-    }
+    // ✅ Include distanceInKm in the payload
+    const rentalData = {
+      carID,
+      customerID,
+      date: startTime ? startTime.split("T")[0] : new Date().toISOString().split("T")[0],
+      pickupLocation: pickup.locationID,
+      dropoffLocation: dropoff.locationID,
+      totalCost: calculateCost(distanceInKm ,ratePerKm),
+      distanceInKm, // ← ADD THIS LINE
+    };
+
+    console.log("✅ Rental data:", rentalData);
+
+    const response = await axios.post(`${RENTAL_API_URL}/create`, rentalData);
+    console.log("✅ Rental successful:", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error("❌ Rental failed:", error.message);
+    throw error;
   }
+}
+
+static async getRentalsForUser() {
+  try {
+    const profileID = getProfileID(); // returns number
+    const response = await axios.get(`${RENTAL_API_URL}/customer/${profileID}`);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Failed to fetch rentals:", error.message || error);
+    throw error;
+  }
+}
 }
 
 export default RentalAction;

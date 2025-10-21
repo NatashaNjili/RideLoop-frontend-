@@ -4,9 +4,10 @@ import LocationPermission from '../../../components/LocationPermission';
 import Location from '../../../Common/pages/Location/Location';
 import RideInfo from './RideInfo';
 import { updateCarLocation } from '../../../Admin/pages/Cars/CarSandR';
-import  RentalAction  from "./RentalAction";
+import RentalAction from "./RentalAction";
 import { processPaymentForRental, showPaymentSuccessNotification } from './Payment';
 import { useNotifications } from "../context/NotificationsContext";
+
 // Helper: Delay for animation
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -45,10 +46,8 @@ function RideProcess() {
   const [rideSummary, setRideSummary] = useState(null);
   const { addNotification } = useNotifications();
 
-  // Toggle to trigger refresh in Location
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
-  // Enter choose mode or select car
   const handleChooseCar = (data) => {
     if (data === true) {
       setIsChoosingCar(true);
@@ -85,141 +84,104 @@ function RideProcess() {
     }
   };
 
-  // Accept selected car → enter driving mode
- const handleAccept = () => {
-  const now = new Date().toISOString();
+  const handleAccept = () => {
+    const now = new Date().toISOString();
+    setAcceptedCar({
+      ...selectedCar,
+      rentalStartTime: now,
+      rentalStartLocation: {
+        latitude: coords.lat,
+        longitude: coords.lng,
+      },
+    });
+    setSelectedCar(null);
+    setIsInDrivingMode(true);
+  };
 
-  setAcceptedCar({
-    ...selectedCar,
-    rentalStartTime: now,
-    rentalStartLocation: {
-      latitude: coords.lat,
-      longitude: coords.lng
+  const handleMapClick = async (lat, lng) => {
+    console.log("📍 Raw onMapClick received:", { lat, lng });
+
+    if (!isInDrivingMode || isAnimatingDrive || !acceptedCar || !coords) return;
+
+    if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) {
+      console.error("❌ Invalid drop-off coordinates:", { lat, lng });
+      return;
     }
-  });
 
-  setSelectedCar(null);
-  setIsInDrivingMode(true);
-};
+    setIsAnimatingDrive(true);
+    setIsInDrivingMode(false);
 
-  // Handle destination from drag → animate realistic drive
- const handleMapClick = async (lat, lng) => {
-  console.log("📍 Raw onMapClick received:", { lat, lng }); // DEBUG
+    const start = { lat: coords.lat, lng: coords.lng };
+    const destination = { lat, lng };
 
-  if (!isInDrivingMode || isAnimatingDrive || !acceptedCar || !coords) return;
+    const route = generateRealisticRoute(start, destination);
+    for (let point of route) {
+      setCoords(point);
+      setAcceptedCar(prev => ({
+        ...prev,
+        location: { latitude: point.lat, longitude: point.lng },
+      }));
+      await sleep(80);
+    }
 
-  // ✅ Validate inputs
-  if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) {
-    console.error("❌ Invalid drop-off coordinates:", { lat, lng });
-    return; // Stop here
-  }
+    setCoords(destination);
+    const distanceInKm = calculateDistance(start, destination);
+    const distanceInMeters = Math.round(distanceInKm * 1000);
+    setRideDistance(distanceInKm);
 
-  setIsAnimatingDrive(true);
-  setIsInDrivingMode(false);
+    try {
+      await updateCarLocation(acceptedCar.carId, { latitude: lat, longitude: lng }, distanceInMeters);
+      console.log('✅ Car updated on server!');
 
-  const start = { lat: coords.lat, lng: coords.lng };
-  const destination = { lat, lng };
+      // ✅ SINGLE rental creation — with consistent latitude/longitude
+      const rental = await RentalAction.createRental({
+        startLocation: {
+          latitude: acceptedCar.rentalStartLocation.latitude,
+          longitude: acceptedCar.rentalStartLocation.longitude,
+        },
+        endLocation: {
+          latitude: lat,
+          longitude: lng,
+        },
+        distanceInKm,
+        carId: acceptedCar.carId,
+        startTime: acceptedCar.rentalStartTime,
+        ratePerKm: acceptedCar.rentalRate, 
+      });
 
-  // Animate route
-  const route = generateRealisticRoute(start, destination);
-  for (let point of route) {
-    setCoords(point);
-    setAcceptedCar(prev => ({
-      ...prev,
-      location: { latitude: point.lat, longitude: point.lng }
-    }));
-    await sleep(80);
-  }
+      console.log('✅ Rental created:', rental);
 
-  setCoords(destination); // Final position
+      // 💳 Process payment
+      const payment = await processPaymentForRental(rental);
+      showPaymentSuccessNotification(rental, payment);
 
-  const distanceInKm = calculateDistance(start, destination);
-  const distanceInMeters = Math.round(distanceInKm * 1000);
-  setRideDistance(distanceInKm);
+      addNotification({
+        id: rental.rentalID,
+        title: "Ride Completed",
+        message: `You completed a ride with Car: ${acceptedCar.brand} ${acceptedCar.model}. Paid R${payment.paymentAmount.toFixed(2)}.`,
+        date: new Date().toISOString(),
+      });
 
-  try {
-    await updateCarLocation(acceptedCar.carId, { latitude: lat, longitude: lng }, distanceInMeters);
-    console.log('✅ Car updated on server!');
+      setRideSummary({ rental, payment, distanceInKm });
+      setShowThankYou(true);
+      setRefreshTrigger(prev => !prev);
 
-   await RentalAction.createRental({
-  startLocation: {
-    latitude: acceptedCar.rentalStartLocation.latitude,
-    longitude: acceptedCar.rentalStartLocation.longitude
-  },
-  endLocation: {
-    latitude: lat,
-    longitude: lng
-  },
-  distanceInKm,
-  carId: acceptedCar.carId,
-  startTime: acceptedCar.rentalStartTime
-});
+    } catch (error) {
+      console.error('❌ Ride finalization failed:', error);
+      alert("Failed to complete ride. Please contact support.");
+    } finally {
+      setIsAnimatingDrive(false);
+    }
+  };
 
-    console.log('✅ Rental created!');
-    setRefreshTrigger(prev => !prev);
-    setShowThankYou(true);
+  const handleThankYouClose = () => {
+    setShowThankYou(false);
+    setAcceptedCar(null);
+    setRideDistance(null);
+    setRideSummary(null);
+  };
 
-  } catch (error) {
-    console.error('❌ Ride finalization failed:', error.message || error);
-    alert("Failed to complete ride. Please contact support.");
-  } finally {
-    setIsAnimatingDrive(false);
-  }
-
-
-
-// Inside handleMapClick, after creating rental
-const rental = await RentalAction.createRental({
-  startLocation: acceptedCar.rentalStartLocation,
-  endLocation: { lat, lng },
-  distanceInKm,
-  carId: acceptedCar.carId,
-  startTime: acceptedCar.rentalStartTime
-});
-
-console.log('✅ Rental created:', rental);
-
-// 💳 Process payment + show summary
-     try {
-         const payment = await processPaymentForRental(rental);
-         showPaymentSuccessNotification(rental, payment);
-
-         addNotification({
-             id: rental.rentalID, // unique
-             title: "Ride Completed",
-             message: `You completed a ride with Car: ${acceptedCar.brand} ${acceptedCar.model}. Paid R${payment.paymentAmount.toFixed(2)}.`,
-             date: new Date().toISOString(),
-         });
-
-         // ✅ Save summary for receipt popup
-         setRideSummary({
-             rental,
-             payment,
-             distanceInKm
-         });
-
-         setShowThankYou(true); // show receipt
-     } catch (err) {
-         console.warn("Payment failed, but ride completed.");
-         alert("Payment failed. Please update your payment method in settings.");
-     }
-
-
-// Continue with UI updates
-setRefreshTrigger(prev => !prev);
-setShowThankYou(true);
-
-};
-  // Close thank you message
-    const handleThankYouClose = () => {
-        setShowThankYou(false);
-        setAcceptedCar(null);
-        setRideDistance(null);
-        setRideSummary(null); // reset summary
-    };
-
-
-    return (
+  return (
     <div>
       {!coords ? (
         <LocationPermission setCoords={setCoords} />
@@ -238,7 +200,7 @@ setShowThankYou(true);
             refreshCars={refreshTrigger}
           />
 
-          {/* Popup after arriving at car */}
+          {/* Car selection popup */}
           {selectedCar && !isWalking && !isChoosingCar && !isInDrivingMode && !showThankYou && (
             <>
               <div
@@ -248,31 +210,30 @@ setShowThankYou(true);
               <RideInfo
                 car={selectedCar}
                 onAccept={handleAccept}
-                onDecline={ handleThankYouClose}
+                onDecline={() => setSelectedCar(null)}
               />
             </>
           )}
 
-          {/* Thank You Popup */}
-            {/* Thank You Popup / Receipt */}
-            {showThankYou && rideSummary && (
-                <div
-                    className="thank-you-overlay"
-                    style={thankYouOverlayStyle}
-                    onClick={handleThankYouClose}
-                >
-                    <div style={thankYouBoxStyle}>
-                        <h2 style={{ color: "#000", fontSize: "20px" }}>🎉 Ride Complete!</h2>
-                        <p><strong>Distance:</strong> {rideSummary.distanceInKm.toFixed(2)} km</p>
-                        <p><strong>Amount Paid:</strong> R{rideSummary.payment.paymentAmount.toFixed(2)}</p>
-                        <p><strong>Payment Method:</strong> {rideSummary.payment.paymentMethod}</p>
-                        <p><strong>Status:</strong> ✅ {rideSummary.payment.paymentStatus}</p>
-                        <p><strong>Date:</strong> {new Date(rideSummary.payment.paymentDate).toLocaleString()}</p>
-                        <hr />
-                        <small>Click anywhere to continue...</small>
-                    </div>
-                </div>
-            )}
+          {/* Thank You / Receipt Popup */}
+          {showThankYou && rideSummary && (
+            <div
+              className="thank-you-overlay"
+              style={thankYouOverlayStyle}
+              onClick={handleThankYouClose}
+            >
+              <div style={thankYouBoxStyle}>
+                <h2 style={{ color: "#000", fontSize: "20px" }}>🎉 Ride Complete!</h2>
+                <p><strong>Distance:</strong> {rideSummary.distanceInKm.toFixed(2)} km</p>
+                <p><strong>Amount Paid:</strong> R{rideSummary.payment.paymentAmount.toFixed(2)}</p>
+                <p><strong>Payment Method:</strong> {rideSummary.payment.paymentMethod}</p>
+                <p><strong>Status:</strong> ✅ {rideSummary.payment.paymentStatus}</p>
+                <p><strong>Date:</strong> {new Date(rideSummary.payment.paymentDate).toLocaleString()}</p>
+                <hr />
+                <small>Click anywhere to continue...</small>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -311,7 +272,7 @@ function generateRealisticRoute(start, end) {
   return route;
 }
 
-// Styles for thank you popup
+// Styles
 const thankYouOverlayStyle = {
   position: 'fixed',
   top: 0,
