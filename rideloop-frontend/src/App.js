@@ -22,7 +22,7 @@ import Home from './Home';
 import Payment from './Renter/pages/Rides/Payment';
 import RentalAction from './Renter/pages/Rides/RentalAction';
 
-import CustomerApproval from "./Admin/pages/Dashboard/CustomerApproval"
+import CustomerApprovalPage from "./Admin/pages/CustomerApproval/CustomerApprovalPage"
 import FinancialReport from "./Admin/pages/Reports/FinancialReport"
 import FinancialReportsAdmin from "./Admin/pages/Reports/FinancialReportsAdmin"
 import CreateReport from "./Admin/pages/Reports/CreateReport"
@@ -31,7 +31,7 @@ import DeleteReport from "./Admin/pages/Reports/DeleteReport"
 import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
 import EditCar from './Admin/pages/Cars/EditCar';
 import Rentals from './Renter/pages/Dashboard/Rentals';
-import incident from './Renter/pages/Dashboard/Incident'; 
+import Incident from './Renter/pages/Dashboard/Incident'; 
 import Wallet from './Renter/pages/Dashboard/Wallet';
 import Support from './Renter/pages/Dashboard/Support';
 import Notifications from './Renter/pages/Dashboard/Notifications';
@@ -58,7 +58,7 @@ function App() {
       <Route path="/EditProfile" element={<EditProfile />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
-      <Route path="/CustomerApproval" element={<CustomerApproval />} />
+      <Route path="/CustomerApprovalPage" element={<CustomerApprovalPage />} />
       <Route path="/FinancialReport" element={<FinancialReport />} />
       <Route path="/Reports" element={<Reports />} />
       <Route path="/FinancialReportsAdmin" element={<FinancialReportsAdmin />} />
@@ -72,7 +72,7 @@ function App() {
         <Route path="/Wallet" element={<Wallet/>} />
         <Route path="/Support" element={<Support/>} />
         <Route path="/RentalAction" element={<RentalAction />} />
-                <Route path="/incident" element={<incident/>} />
+                <Route path="/incident" element={<Incident/>} />
         <Route path="/" element={<RideProcess />} />
         <Route path="/notifications" element={<Notifications />} />
 

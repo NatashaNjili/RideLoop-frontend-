@@ -5,6 +5,15 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8080/rideloopdb/profiles";
 
+// Helper: Get headers with JWT token
+const getHeaders = () => {
+  const token = localStorage.getItem("jwtToken");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
 const ViewCustomerProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -20,7 +29,11 @@ const ViewCustomerProfile = () => {
   const approveProfile = async () => {
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/${profile.profileID}`, { status: "approved" }, { params: { isAdmin: true } });
+      await axios.put(
+        `${API_URL}/${profile.profileID}`,
+        { status: "approved" },
+        { headers: getHeaders(), params: { isAdmin: true } }
+      );
       alert("Profile approved successfully!");
       navigate(-1);
     } catch (err) {
@@ -37,7 +50,7 @@ const ViewCustomerProfile = () => {
 
     setLoading(true);
     try {
-      await axios.delete(`${API_URL}/${profile.profileID}`);
+      await axios.delete(`${API_URL}/${profile.profileID}`, { headers: getHeaders() });
       alert("Profile deleted successfully!");
       navigate(-1);
     } catch (err) {
@@ -51,9 +64,10 @@ const ViewCustomerProfile = () => {
   // --- View Document in Modal ---
   const viewDocument = async (type) => {
     try {
-      const res = await axios.get(`${API_URL}/${profile.profileID}/document/${type}`, {
-        responseType: "blob",
-      });
+      const res = await axios.get(
+        `${API_URL}/${profile.profileID}/document/${type}`,
+        { headers: getHeaders(), responseType: "blob" }
+      );
 
       const fileURL = URL.createObjectURL(
         new Blob([res.data], { type: "application/pdf" })
@@ -72,21 +86,20 @@ const ViewCustomerProfile = () => {
       <img src="/logo.png" alt="Logo" className="logo" />
       <nav>
         <ul>
-          {[
-            { to: "/AdminDashboard", label: "Overview" },
+          {[{ to: "/AdminDashboard", label: "Overview" },
             { to: "/ManageCars", label: "Manage Cars" },
             { to: "/Maintenance", label: "Maintenance" },
             { to: "/CustomerApprovalPage", label: "Customer Approvals" },
             { to: "/Reports", label: "Reports" },
-            { to: "/RenterDashboard", label: "Renter Dashboard" },
-          ].map((link, i) => (
+            { to: "/RenterDashboard", label: "Renter Dashboard" }]
+          .map((link, i) => (
             <li key={i}><Link to={link.to} className="sidebar-link">{link.label}</Link></li>
           ))}
         </ul>
       </nav>
       <button
         className="logout-button"
-        onClick={() => { localStorage.removeItem("loggedInUser"); navigate("/login"); }}
+        onClick={() => { localStorage.removeItem("loggedInUser"); localStorage.removeItem("jwtToken"); navigate("/login"); }}
       >
         Logout
       </button>
@@ -144,20 +157,10 @@ const ViewCustomerProfile = () => {
         </div>
 
         {documentModal.open && (
-          <div
-            style={modalOverlayStyle}
-            onClick={() => setDocumentModal({ open: false, type: "", url: null })}
-          >
+          <div style={modalOverlayStyle} onClick={() => setDocumentModal({ open: false, type: "", url: null })}>
             <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-              <FaTimes
-                onClick={() => setDocumentModal({ open: false, type: "", url: null })}
-                style={{ position: "absolute", top: "10px", right: "10px", cursor: "pointer" }}
-              />
-              <iframe
-                src={documentModal.url}
-                title={documentModal.type}
-                style={{ width: "100%", height: "80vh", border: "none" }}
-              />
+              <FaTimes onClick={() => setDocumentModal({ open: false, type: "", url: null })} style={{ position: "absolute", top: "10px", right: "10px", cursor: "pointer" }} />
+              <iframe src={documentModal.url} title={documentModal.type} style={{ width: "100%", height: "80vh", border: "none" }} />
             </div>
           </div>
         )}
@@ -167,73 +170,15 @@ const ViewCustomerProfile = () => {
 };
 
 // --- Styles ---
-const btnStyle = {
-  padding: "10px 20px",
-  borderRadius: "5px",
-  border: "none",
-  backgroundColor: "#1E90FF",
-  color: "#fff",
-  fontWeight: "bold",
-  cursor: "pointer"
-};
+const btnStyle = { padding: "10px 20px", borderRadius: "5px", border: "none", backgroundColor: "#1E90FF", color: "#fff", fontWeight: "bold", cursor: "pointer" };
 const btnBackStyle = { ...btnStyle, backgroundColor: "#ccc", color: "#000" };
 const btnApproveStyle = { ...btnStyle };
 
-const profileContainerStyle = {
-  padding: "30px",
-  backgroundColor: "#fff",
-  borderRadius: "8px",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-  maxWidth: "600px",
-  margin: "20px auto"
-};
-
-const docButtonsStyle = {
-  marginTop: "20px",
-  display: "flex",
-  gap: "10px",
-  flexWrap: "wrap"
-};
-
-const modalOverlayStyle = {
-  position: "fixed",
-  top: 0, left: 0,
-  width: "100%", height: "100%",
-  backgroundColor: "rgba(0,0,0,0.5)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 10000
-};
-
-const modalContentStyle = {
-  position: "relative",
-  width: "80%",
-  maxWidth: "900px",
-  backgroundColor: "#fff",
-  borderRadius: "8px",
-  padding: "20px",
-  boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
-};
-
-const menuStyle = {
-  position: "absolute",
-  right: 0,
-  marginTop: "5px",
-  background: "#fff",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-  borderRadius: "5px",
-  zIndex: 1000,
-  minWidth: "150px"
-};
-
-const menuBtnStyle = {
-  width: "100%",
-  padding: "10px",
-  border: "none",
-  background: "none",
-  textAlign: "left",
-  cursor: "pointer"
-};
+const profileContainerStyle = { padding: "30px", backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", maxWidth: "600px", margin: "20px auto" };
+const docButtonsStyle = { marginTop: "20px", display: "flex", gap: "10px", flexWrap: "wrap" };
+const modalOverlayStyle = { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000 };
+const modalContentStyle = { position: "relative", width: "80%", maxWidth: "900px", backgroundColor: "#fff", borderRadius: "8px", padding: "20px", boxShadow: "0 2px 10px rgba(0,0,0,0.3)" };
+const menuStyle = { position: "absolute", right: 0, marginTop: "5px", background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.2)", borderRadius: "5px", zIndex: 1000, minWidth: "150px" };
+const menuBtnStyle = { width: "100%", padding: "10px", border: "none", background: "none", textAlign: "left", cursor: "pointer" };
 
 export default ViewCustomerProfile;

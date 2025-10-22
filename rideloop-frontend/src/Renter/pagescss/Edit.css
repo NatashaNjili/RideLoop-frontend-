@@ -1,0 +1,130 @@
+/* Container for the whole page */
+.edit-profile-container {
+  padding: 20px;
+  max-width: 900px; /* changed from 100px */
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+/* Card to wrap the form */
+.edit-profile-card {
+  background-color: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+/* Title of the card */
+.edit-profile-card h2 {
+  text-align: center;
+  color: #1a73e8;
+  margin-bottom: 25px;
+}
+
+/* Form layout */
+.edit-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Sections within the form */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Section headers */
+.form-section h3 {
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+/* Text and file inputs */
+.edit-profile-form input[type="text"],
+.edit-profile-form input[type="file"] {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  width: 100%;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+/* Focus effect */
+.edit-profile-form input[type="text"]:focus,
+.edit-profile-form input[type="file"]:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
+  outline: none;
+}
+
+/* Primary button */
+.primary-btn {
+  background-color: #1a73e8;
+  color: #fff;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  align-self: flex-start;
+}
+
+/* Button hover effect */
+.primary-btn:hover {
+  background-color: #1665c1;
+  transform: translateY(-2px);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+}
+preview-img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  margin-top: 10px;
+  object-fit: cover;
+  border: 3px solid #4CAF50;
+  transition: transform 0.3s ease;
+}
+
+.preview-img:hover {
+  transform: scale(1.1);
+}
+
+
+/* Responsive for tablets/mobile */
+@media (max-width: 768px) {
+  .edit-profile-card {
+    padding: 20px;
+  }
+
+  .edit-profile-form input[type="text"],
+  .edit-profile-form input[type="file"] {
+    font-size: 14px;
+  }
+}
+.preview-img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  margin-top: 10px;
+  object-fit: cover;
+  border: 3px solid #4CAF50;
+  transition: transform 0.3s ease;
+}
+
+.preview-img:hover {
+  transform: scale(1.1);
+}
