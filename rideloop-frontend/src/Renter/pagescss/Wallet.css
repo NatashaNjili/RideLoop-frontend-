@@ -1,0 +1,125 @@
+/* Wallet.css */
+
+/* General container */
+.wallet-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  color: #333;
+}
+
+/* Main section */
+.wallet-main h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* Error and loading */
+.error {
+  color: #e74c3c;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Wallet simulation form */
+.wallet-simulation {
+  background-color: #f7f9fc;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-simulation h3 {
+  margin-bottom: 15px;
+  color: #34495e;
+}
+
+.wallet-simulation input {
+  display: block;
+  width: calc(100% - 20px);
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.wallet-simulation button {
+  padding: 10px 20px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.wallet-simulation button:hover {
+  background-color: #2980b9;
+}
+
+/* Stored cards */
+.stored-cards {
+  margin-top: 15px;
+}
+
+.stored-cards h4 {
+  margin-bottom: 10px;
+}
+
+.stored-cards ul {
+  list-style: none;
+  padding: 0;
+}
+
+.stored-cards li {
+  background-color: #ecf0f1;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* Payments list */
+.payment-list h3 {
+  margin-bottom: 15px;
+  color: #34495e;
+}
+
+.payment-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.payment-list li {
+  background-color: #f1f2f6;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* See more button */
+.see-more-btn {
+  padding: 10px 20px;
+  background-color: #2ecc71;
+  border: none;
+  color: white;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: block;
+  margin: 10px auto 0 auto;
+}
+
+.see-more-btn:hover {
+  background-color: #27ae60;
+}
