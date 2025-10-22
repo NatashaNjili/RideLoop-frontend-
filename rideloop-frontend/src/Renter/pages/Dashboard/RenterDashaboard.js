@@ -1,173 +1,149 @@
+/* eslint-disable */
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import RideProcess from "../Rides/RideProcess";
 import "../../pagescss/RenterDashboard.css";
-import logo from "../../../assets/logo.png";
+import NavBar from "../../../components/NavBar";
 
-function RenterDashboard() {
+const BASE_URL = "http://localhost:8080/rideloopdb/profiles";
+
+const RenterDashboard = () => {
   const [profile, setProfile] = useState(null);
-  const [quickStats, setQuickStats] = useState({ trips: 0, distance: 0, spent: 0 });
-  const [availableCars, setAvailableCars] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
-  const [location, setLocation] = useState(null);
+  const [noProfile, setNoProfile] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
-  const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-  const userId = storedUser?.userID;
+  // 🔒 Load user and token from localStorage (handles multiple tabs)
+  useEffect(() => {
+    const savedUser = localStorage.getItem("loggedInUser");
+    const token = localStorage.getItem("jwtToken");
 
+    // If no user or token, redirect to login
+    if (!savedUser || !token) {
+      navigate("/Login");
+      return;
+    }
+
+    setUser(JSON.parse(savedUser));
+
+    // Set Axios default Authorization header
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }, [navigate]);
+
+  const userId = user?.userID;
+
+  // 🔒 Fetch profile securely
   useEffect(() => {
     if (!userId) return;
-    const BASE_URL = "http://localhost:8080/rideloopdb";
 
-    const fetchData = async () => {
+    const fetchProfile = async () => {
       try {
-        const userRes = await axios.get(`${BASE_URL}/users/${userId}`);
-        const userProfile = userRes.data.user;
-        setProfile(userProfile);
-        if (userProfile?.profileID) {
-          localStorage.setItem("profileID", userProfile.profileID);
+        const response = await axios.get(`${BASE_URL}/user/${userId}`);
+        const userProfile = response.data;
+
+        if (!userProfile || !userProfile.profileID) {
+          setNoProfile(true);
+          localStorage.removeItem("profileID");
+          return;
         }
 
-        const statsRes = await axios.get(`${BASE_URL}/profiles/user/${userId}`);
-        if (statsRes.data.quickStats) setQuickStats(statsRes.data.quickStats);
+        // Profile exists
+        setProfile(userProfile);
+        localStorage.setItem("profileID", userProfile.profileID);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
 
-        const carsRes = await axios.get(`${BASE_URL}/api/cars/all`);
-        console.log("These are the cars:", carsRes);
-        const available = carsRes.data.filter(car => car.status === "available");
-        setAvailableCars(available);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
+        // 🔐 Handle authorization errors
+        if (error.response?.status === 403 || error.response?.status === 401) {
+          alert("Session expired or unauthorized. Please log in again.");
+          localStorage.removeItem("jwtToken");
+          localStorage.removeItem("loggedInUser");
+          navigate("/Login");
+        }
+
+        if (error.response?.status === 404) {
+          setNoProfile(true);
+          localStorage.removeItem("profileID");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [userId]);
+    fetchProfile();
+  }, [userId, navigate]);
 
-  // ===== Handle Book Now =====
-  const handleBookNow = () => {
-    setShowLocationPrompt(true);
-  };
-
-  // ===== Get Location =====
-  const handleShareLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          setLocation(userLocation);
-          alert(`📍 Location shared! Latitude: ${userLocation.lat}, Longitude: ${userLocation.lng}`);
-          setShowLocationPrompt(false);
-          // You can now redirect or proceed with booking logic here
-        },
-        () => {
-          alert("⚠️ Please enable location access to continue.");
-        }
-      );
-    } else {
-      alert("Geolocation is not supported by your browser.");
+  // Redirect to create profile if none exists
+  useEffect(() => {
+    if (noProfile) {
+      const timer = setTimeout(() => {
+        navigate("/editprofile", { state: { userID: userId } });
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [noProfile, navigate, userId]);
+
+  if (loading) return <div className="loading">Loading dashboard...</div>;
+
+  if (noProfile) {
+    return (
+      <div className="dashboard-page">
+        <NavBar />
+        <div
+          className="dashboard-container"
+          style={{
+            textAlign: "center",
+            padding: "4rem",
+            fontFamily: "Poppins, sans-serif",
+          }}
+        >
+          <h2>Hello, {user?.username || "User"} 👋</h2>
+          <p style={{ fontSize: "1.1rem", marginTop: "1rem" }}>
+            You don’t have a profile yet. <br />
+            Redirecting you to create your profile...
+          </p>
+          <Link
+            to="/editprofile"
+            state={{ userID: userId }}
+            style={{
+              display: "inline-block",
+              marginTop: "2rem",
+              padding: "0.8rem 1.5rem",
+              backgroundColor: "#007bff",
+              color: "#fff",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontWeight: "500",
+            }}
+          >
+            Create Profile Now
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="dashboard-container">
-      {/* HEADER */}
-      <header className="top-bar">
-        <div className="top-left">
-          <div className="logo-container">
-            <img src={logo} alt="RideLoop Logo" className="logo-image" />
-          </div>
-        </div>
-        <div className="top-right">
-          <div className="profile-dropdown">
-            <button className="hamburger">☰</button>
-            <div className="dropdown-menu">
-              <Link to="/Profile">My Profile</Link>
-              <Link to="/Wallet">Wallet</Link>
-              <Link to="/Incident">Support</Link>
-              <Link to="/logout">Logout</Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* NAVBAR */}
-      <nav className="dashboard-nav">
-        <ul>
-          <li><Link to="/Profile">My Profile</Link></li>
-          <li><Link to="/Rentals">My Rentals</Link></li>
-          <li><Link to="/Wallet">Wallet</Link></li>
-          <li><Link to="/notifications">Notifications</Link></li>
-          <li><Link to="/incident">Incidents</Link></li>
-        </ul>
-      </nav>
-
-      {/* MAIN CONTENT */}
-      <main className="dashboard-main">
-        <section className="welcome-banner">
-          <h2>Welcome back, {storedUser?.username || "Loading..."} 👋 Ready for your next trip?</h2>
-          <button className="primary-btn" onClick={handleBookNow}>Book a Car</button>
-        </section>
-
-        <section className="quick-stats">
-          <div className="stat-card">
-            <h4>Total Trips</h4>
-            <p>{quickStats.trips}</p>
-          </div>
-          <div className="stat-card">
-            <h4>Distance Driven (km)</h4>
-            <p>{quickStats.distance}</p>
-          </div>
-          <div className="stat-card">
-            <h4>Amount Spent (ZAR)</h4>
-            <p>{quickStats.spent}</p>
-          </div>
-        </section>
-
-        <section className="available-cars">
-          <h3>🚘 Available Cars Nearby</h3>
-          <div className="cars-grid">
-            {loading ? (
-              <p>Loading cars...</p>
-            ) : availableCars.length > 0 ? (
-              availableCars.map(car => (
-                <div className="car-card" key={car.carId}>
-                  <p><strong>{car.brand} {car.model}</strong></p>
-                  <p>Rate: ZAR {car.rentalRate}/day</p>
-                  <button className="primary-btn" onClick={handleBookNow}>
-                    Book Now
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p>No available cars nearby</p>
-            )}
-          </div>
-        </section>
-
-        <RideProcess />
-      </main>
-
-      {/* LOCATION MODAL */}
-      {showLocationPrompt && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3>📍 Share Your Location</h3>
-            <p>We need your location to show cars available near you.</p>
-            <div className="modal-actions">
-              <button className="primary-btn" onClick={handleShareLocation}>Share Location</button>
-              <button className="cancel-btn" onClick={() => setShowLocationPrompt(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="dashboard-page">
+      <NavBar />
+      <div className="dashboard-container">
+        <main className="dashboard-main">
+          <section className="welcome-banner">
+            <h2>
+              Welcome back, {profile?.firstName || user?.username || "User"} 👋
+            </h2>
+            <p>Your journey starts here — ready for your next ride?</p>
+          </section>
+          <RideProcess />
+        </main>
+        <footer className="dashboard-footer">
+          <p>© 2025 RideLoop. All rights reserved.</p>
+        </footer>
+      </div>
     </div>
   );
-}
+};
 
 export default RenterDashboard;

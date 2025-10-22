@@ -1,9 +1,21 @@
 // src/Renter/pages/Dashboard/Rentals.js
 import React, { useEffect, useState } from 'react';
 import RentalAction from '../Rides/RentalAction';
-import { fetchCarById } from '../../../Admin/pages/Cars/CarSandR';
 import { FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 import '../../pagescss/Rentals.css';
+import NavBar from "../../../components/NavBar";
+
+
+const fetchCarById = async (id) => {
+  const token = localStorage.getItem('jwtToken'); // Make sure token is stored after login
+  const response = await fetch(`http://localhost:8080/rideloopdb/api/cars/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error(`Failed to fetch car with ID ${id}`);
+  return response.json();
+};
 
 const Rentals = () => {
   const [rentalItems, setRentalItems] = useState([]); // { rental, car }
@@ -16,6 +28,7 @@ const Rentals = () => {
     const fetchRentalsWithCars = async () => {
       setLoading(true);
       setError('');
+
       try {
         const rentals = await RentalAction.getRentalsForUser();
 
@@ -26,7 +39,7 @@ const Rentals = () => {
           return;
         }
 
-        // Fetch car details
+        // Fetch car details with JWT support
         const rentalsWithCars = await Promise.all(
           rentals.map(async (rental) => {
             try {
@@ -41,7 +54,7 @@ const Rentals = () => {
 
         setRentalItems(rentalsWithCars);
 
-        // 🔢 Calculate stats from rentals
+        // 🔢 Calculate stats
         const trips = rentals.length;
         const distance = rentals.reduce((sum, r) => sum + (r.distanceInKm || 0), 0);
         const spent = rentals.reduce((sum, r) => sum + (parseFloat(r.totalCost) || 0), 0);
@@ -63,6 +76,7 @@ const Rentals = () => {
     fetchRentalsWithCars();
   }, []);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClick = () => {
       if (dropdownOpen !== null) setDropdownOpen(null);
@@ -85,11 +99,12 @@ const Rentals = () => {
 
   return (
     <div className="rentals-container">
+       <NavBar  />
       <div className="rentals-header">
         <h2>Your Rental History</h2>
       </div>
 
-      {/* ✅ Quick stats now appear RIGHT AFTER the heading */}
+      {/* Quick stats */}
       <section className="quick-stats">
         <div className="stat-card">
           <h4>Total Trips</h4>
@@ -122,9 +137,7 @@ const Rentals = () => {
                     className="menu-dots"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setDropdownOpen(
-                        dropdownOpen === rental.rentalID ? null : rental.rentalID
-                      );
+                      setDropdownOpen(dropdownOpen === rental.rentalID ? null : rental.rentalID);
                     }}
                   />
                   {dropdownOpen === rental.rentalID && (
@@ -149,7 +162,6 @@ const Rentals = () => {
               <p><strong>Date:</strong> {rental.date}</p>
               <p><strong>Total Paid:</strong> R{Number(rental.totalCost).toFixed(2)}</p>
 
-              {/* Only show distance if it exists */}
               {typeof rental.distanceInKm === 'number' && (
                 <p><strong>Distance:</strong> {rental.distanceInKm.toFixed(2)} km</p>
               )}

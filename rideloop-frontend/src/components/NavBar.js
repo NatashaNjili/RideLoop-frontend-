@@ -181,14 +181,15 @@ const Navbar = ({ profileName }) => {
       <nav className="dashboard-nav">
         <ul>
           <li>
+            <Link to="/renterdashboard">Home</Link>
+          </li>
+          <li>
             <Link to="/Profile">My Profile</Link>
           </li>
           <li>
             <Link to="/Rentals">My Rentals</Link>
           </li>
-          <li>
-            <Link to="/Wallet">Wallet</Link>
-          </li>
+          
           <li>
             <Link to="/Notifications">Notifications</Link>
           </li>

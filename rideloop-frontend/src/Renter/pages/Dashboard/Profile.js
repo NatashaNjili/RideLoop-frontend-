@@ -6,6 +6,7 @@ import "../../pagescss/Profile.css";
 import NavBar from "../../../components/NavBar";
 
 const API_URL = "http://localhost:8080/rideloopdb/profiles";
+const REWARDS_URL = "http://localhost:8080/rideloopdb/api/rewards/customer";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -13,11 +14,15 @@ const Profile = () => {
   const userID = loggedInUser?.userID;
 
   const [profile, setProfile] = useState(null);
+  const [rewardsSummary, setRewardsSummary] = useState({ totalPoints: 0, tier: "Bronze" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const storedProfileID = localStorage.getItem("profileID");
 
+  /** ==========================
+   *  FETCH CUSTOMER PROFILE
+   *  ========================== */
   useEffect(() => {
     const fetchProfile = async () => {
       if (!userID) {
@@ -30,28 +35,25 @@ const Profile = () => {
         const token = localStorage.getItem("jwtToken");
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-        let profileData;
+        let response;
         if (storedProfileID) {
-          const res = await axios.get(`${API_URL}/${storedProfileID}`, config);
-          profileData = res.data;
+          response = await axios.get(`${API_URL}/${storedProfileID}`, config);
         } else {
-          const res = await axios.get(`${API_URL}/user/${userID}`, config);
-          profileData = res.data;
-          if (profileData.profileID) localStorage.setItem("profileID", profileData.profileID);
+          response = await axios.get(`${API_URL}/user/${userID}`, config);
+          if (response.data.profileID) localStorage.setItem("profileID", response.data.profileID);
         }
 
+        const data = response.data;
         setProfile({
-          ...profileData,
-          address: profileData.address || { streetName: "", suburb: "", province: "", zipCode: "" },
+          ...data,
+          address: data.address || { streetName: "", suburb: "", province: "", zipCode: "" },
           documents: {
-            id: !!profileData.idDocument,
-            license: !!profileData.licenseDoc,
-            idCopy: !!profileData.idCopy,
-            residence: !!profileData.proofOfResidence
+            id: !!data.idDocument,
+            license: !!data.licenseDoc,
+            idCopy: !!data.idCopy,
+            residence: !!data.proofOfResidence,
           },
-          profilePictureUrl: profileData.profileID
-            ? `${API_URL}/${profileData.profileID}/document/profile-picture`
-            : null
+          profilePictureUrl: null,
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -64,16 +66,71 @@ const Profile = () => {
     fetchProfile();
   }, [userID, storedProfileID]);
 
-  // Auto-redirect if profile is approved
+  /** ==========================
+   *  FETCH PROFILE PICTURE
+   *  ========================== */
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      if (!profile?.profileID) return;
+      try {
+        const token = localStorage.getItem("jwtToken");
+        const res = await axios.get(`${API_URL}/${profile.profileID}/document/profile-picture`, {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        });
+        const imageUrl = URL.createObjectURL(res.data);
+        setProfile(prev => ({ ...prev, profilePictureUrl: imageUrl }));
+      } catch (err) {
+        console.warn("Profile picture not found or error fetching:", err.message);
+      }
+    };
+    fetchProfilePicture();
+  }, [profile?.profileID]);
+
+  /** ==========================
+   *  FETCH REWARDS SUMMARY
+   *  ========================== */
+  useEffect(() => {
+    const fetchRewardsSummary = async () => {
+      if (!profile?.profileID) return;
+      try {
+        const token = localStorage.getItem("jwtToken");
+        // Get all rewards for this profile
+        const res = await axios.get(`${REWARDS_URL}/${profile.profileID}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const rewardsList = res.data || [];
+
+        // Sum points
+        const totalPoints = rewardsList.reduce((sum, r) => sum + (r.currentPoints || 0), 0);
+        // Determine current tier based on total points
+        let tier = "Bronze";
+        if (totalPoints >= 1000) tier = "Platinum";
+        else if (totalPoints >= 500) tier = "Gold";
+        else if (totalPoints >= 250) tier = "Silver";
+
+        setRewardsSummary({ totalPoints, tier });
+      } catch (err) {
+        console.warn("No rewards found for this profile yet.", err.message);
+        setRewardsSummary({ totalPoints: 0, tier: "Bronze" });
+      }
+    };
+    fetchRewardsSummary();
+  }, [profile?.profileID]);
+
+  /** ==========================
+   *  REDIRECT IF APPROVED
+   *  ========================== */
   useEffect(() => {
     if (profile?.status?.toLowerCase() === "approved") {
       navigate("/renterdashboard");
     }
   }, [profile, navigate]);
 
-  const handleEditClick = () => {
-    navigate("/editprofile", { state: { userID, profile } });
-  };
+  /** ==========================
+   *  HELPERS
+   *  ========================== */
+  const handleEditClick = () => navigate("/editprofile", { state: { userID, profile } });
 
   const displayAddress = () => {
     if (!profile) return "";
@@ -81,6 +138,9 @@ const Profile = () => {
     return [streetName, suburb, province, zipCode].filter(Boolean).join(", ");
   };
 
+  /** ==========================
+   *  RENDER
+   *  ========================== */
   if (!loggedInUser) return <p>User not logged in.</p>;
   if (loading) return <p>Loading profile...</p>;
   if (error) return <p>{error}</p>;
@@ -88,25 +148,37 @@ const Profile = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Navbar */}
       <NavBar />
-
-      {/* Main content */}
       <main className="profile-main">
         <div className="profile-card">
+          {/* Profile Picture */}
           {profile.profilePictureUrl && (
             <div className="profile-picture">
               <img src={profile.profilePictureUrl} alt="Profile" />
             </div>
           )}
 
+          {/* Profile Details */}
           <div className="profile-details">
             <h2>{profile.firstName} {profile.lastName}</h2>
             {displayAddress() && <p><strong>Address:</strong> {displayAddress()}</p>}
             {profile.phoneNumber && <p><strong>Phone:</strong> {profile.phoneNumber}</p>}
-            <p><strong>Status:</strong> <span className={`status ${profile.status?.toLowerCase()}`}>{profile.status}</span></p>
+            <p>
+              <strong>Status:</strong>{" "}
+              <span className={`status ${profile.status?.toLowerCase()}`}>
+                {profile.status}
+              </span>
+            </p>
+
+            {/* Rewards Section */}
+            <div className="profile-rewards">
+              <h3>Your Rewards</h3>
+              <p><strong>Total Points:</strong> {rewardsSummary.totalPoints}</p>
+              <p><strong>Tier:</strong> {rewardsSummary.tier}</p>
+            </div>
           </div>
 
+          {/* Pending Message */}
           {profile.status?.toLowerCase() === "pending" && (
             <div className="pending-msg">
               <p>Your profile is awaiting approval.</p>
@@ -114,6 +186,7 @@ const Profile = () => {
             </div>
           )}
 
+          {/* Uploaded Documents */}
           {profile.documents && (
             <div className="profile-documents">
               <h3>Uploaded Documents</h3>
@@ -127,8 +200,6 @@ const Profile = () => {
           )}
         </div>
       </main>
-
-      {/* Footer */}
       <footer className="dashboard-footer">
         <p>© 2025 RideLoop. All rights reserved.</p>
       </footer>

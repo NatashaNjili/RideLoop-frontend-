@@ -1,11 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
-import "../../pagescss/Maintenance.css";
+/* eslint-disable */
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaSearch, FaEllipsisV } from "react-icons/fa";
-import logo from "../../../assets/logo.png";
 import axios from "axios";
+import logo from "../../../assets/logo.png";
+import "../../pagescss/Maintenance.css";
 
-const API_URL = "http://localhost:8080/rideloopdb/profiles";
+// Base URL for profile endpoints
+const API_BASE = "http://localhost:8080/rideloopdb/profiles";
+
+// Get headers with JWT token
+const getHeaders = () => {
+  const token = localStorage.getItem("jwtToken");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
 
 const CustomerApprovalPage = () => {
   const navigate = useNavigate();
@@ -16,16 +27,16 @@ const CustomerApprovalPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const dropdownRef = useRef();
 
+  // Fetch profiles from backend
   const fetchProfiles = async () => {
     setLoading(true);
     try {
       const url =
         filterStatus === "all"
-          ? `${API_URL}`
-          : `${API_URL}/status/${filterStatus}`;
-      const res = await axios.get(url);
+          ? `${API_BASE}/getAll`
+          : `${API_BASE}/status/${filterStatus}`;
+      const res = await axios.get(url, { headers: getHeaders() });
       setProfiles(res.data || []);
     } catch (err) {
       console.error("Error fetching profiles:", err);
@@ -39,20 +50,14 @@ const CustomerApprovalPage = () => {
     fetchProfiles();
   }, [filterStatus]);
 
-  // Close dropdown if clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpenId(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
+  // Approve profile
   const approveProfile = async (profileID) => {
     try {
-      await axios.put(`${API_URL}/${profileID}`, { status: "approved" }, { params: { isAdmin: true } });
+      await axios.put(
+        `${API_BASE}/${profileID}`,
+        { status: "approved" },
+        { headers: getHeaders(), params: { isAdmin: true } }
+      );
       fetchProfiles();
       setDropdownOpenId(null);
     } catch (err) {
@@ -60,26 +65,25 @@ const CustomerApprovalPage = () => {
     }
   };
 
+  // Navigate to view profile
   const viewProfile = (profile) => {
     navigate("/viewcustomerprofile", { state: { profile } });
   };
 
-  const toggleDropdown = (profileID) => {
+  const toggleDropdown = (profileID, e) => {
+    e.stopPropagation();
     setDropdownOpenId(dropdownOpenId === profileID ? null : profileID);
   };
 
-  // Apply filters: search + date range
+  // Filter profiles by search and date
   const filteredProfiles = profiles.filter((profile) => {
     const fullName = `${profile.firstName} ${profile.lastName}`.toLowerCase();
     const nameMatch = fullName.includes(searchTerm.toLowerCase());
 
     let dateMatch = true;
-    if (dateFrom) {
-      dateMatch = new Date(profile.createdAt) >= new Date(dateFrom);
-    }
-    if (dateTo) {
-      dateMatch = dateMatch && new Date(profile.createdAt) <= new Date(dateTo);
-    }
+    const createdAt = profile.createdAt ? new Date(profile.createdAt) : null;
+    if (dateFrom && createdAt) dateMatch = createdAt >= new Date(dateFrom);
+    if (dateTo && createdAt) dateMatch = dateMatch && createdAt <= new Date(dateTo);
 
     return nameMatch && dateMatch;
   });
@@ -141,18 +145,8 @@ const CustomerApprovalPage = () => {
                 <option value="approved">Approved</option>
               </select>
 
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                style={{ padding: "5px", borderRadius: "5px" }}
-              />
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                style={{ padding: "5px", borderRadius: "5px" }}
-              />
+              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ padding: "5px", borderRadius: "5px" }} />
+              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ padding: "5px", borderRadius: "5px" }} />
             </div>
           </div>
 
@@ -170,11 +164,11 @@ const CustomerApprovalPage = () => {
               >
                 <div className="insurance-card-header">
                   <h3>{profile.firstName} {profile.lastName}</h3>
-                  {profile.status.toLowerCase() === "pending" && (
-                    <div className="menu-container" ref={dropdownRef} onClick={(e) => e.stopPropagation()}>
+                  {profile.status?.toLowerCase() === "pending" && (
+                    <div className="menu-container" onClick={(e) => e.stopPropagation()}>
                       <FaEllipsisV
                         className="menu-dots"
-                        onClick={() => toggleDropdown(profile.profileID)}
+                        onClick={(e) => toggleDropdown(profile.profileID, e)}
                       />
                       {dropdownOpenId === profile.profileID && (
                         <div className="dropdown-menu">
@@ -185,7 +179,7 @@ const CustomerApprovalPage = () => {
                   )}
                 </div>
                 <p>Status: {profile.status}</p>
-                <p>Created At: {new Date(profile.createdAt).toLocaleDateString()}</p>
+                <p>Created At: {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : "N/A"}</p>
               </div>
             ))
           )}

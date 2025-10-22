@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../../../components/NavBar";
+import "../../pagescss/Edit.css";
 
 const API_URL = "http://localhost:8080/rideloopdb/profiles";
 
@@ -10,11 +11,11 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
   const userID = storedUser?.userID;
-  const jwtToken = localStorage.getItem("jwtToken"); // JWT from login
-
+  const jwtToken = localStorage.getItem("jwtToken");
   const headers = { Authorization: `Bearer ${jwtToken}` };
 
   const [loading, setLoading] = useState(true);
+  const [previewImage, setPreviewImage] = useState(null);
   const [profile, setProfile] = useState({
     profile_id: null,
     first_name: "",
@@ -67,7 +68,7 @@ const EditProfile = () => {
           });
         }
       } catch (err) {
-        console.warn("No profile found", err);
+        console.warn("Error fetching profile", err);
       } finally {
         setLoading(false);
       }
@@ -76,11 +77,13 @@ const EditProfile = () => {
     fetchProfile();
   }, [userID, jwtToken]);
 
+  // Handle text input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle file uploads (only preview profile picture)
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (!files?.length) return;
@@ -88,6 +91,7 @@ const EditProfile = () => {
     const file = files[0];
     if (name === "profile_picture") {
       setProfile((prev) => ({ ...prev, profile_picture: file }));
+      setPreviewImage(URL.createObjectURL(file));
     } else {
       setProfile((prev) => ({
         ...prev,
@@ -96,6 +100,7 @@ const EditProfile = () => {
     }
   };
 
+  // Save profile
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userID || !jwtToken) return alert("User not logged in");
@@ -115,7 +120,6 @@ const EditProfile = () => {
         },
       };
 
-      // Create or update profile
       const response = profile.profile_id
         ? await axios.put(`${API_URL}/${profile.profile_id}`, profileData, { headers })
         : await axios.post(`${API_URL}/user/${userID}`, profileData, { headers });
@@ -136,7 +140,7 @@ const EditProfile = () => {
         await uploadFile(`${API_URL}/${profileId}/document/profile-picture`, profile.profile_picture);
       }
 
-      // Upload other documents
+      // Upload documents
       const docMap = {
         id_document: "id",
         license_doc: "license",
@@ -159,31 +163,56 @@ const EditProfile = () => {
   if (loading) return <p>Loading profile...</p>;
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
-      <NavBar profileName={storedUser?.username} />
-      <h2>Edit Profile</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="first_name" value={profile.first_name} onChange={handleChange} placeholder="First Name" />
-        <input type="text" name="last_name" value={profile.last_name} onChange={handleChange} placeholder="Last Name" />
-        <input type="text" name="id_number" value={profile.id_number} onChange={handleChange} placeholder="ID Number" />
-        <input type="text" name="license_number" value={profile.license_number} onChange={handleChange} placeholder="License Number" />
-        <input type="text" name="phone_number" value={profile.phone_number} onChange={handleChange} placeholder="Phone Number" />
+    <div className="edit-profile-container">
+      <NavBar />
+      <div className="edit-profile-card">
+        <h2>Edit Profile</h2>
+        <form onSubmit={handleSubmit} className="edit-profile-form">
+           <label>Profile Picture</label>
+            <input type="file" name="profile_picture" accept="image/*" onChange={handleFileChange} />
+            {previewImage && (
+              <img src={previewImage} alt="Profile Preview" className="preview-img" />
+            )}{/* Personal Info */}
+          <div className="form-section">
+            <h3>Personal Information</h3>
+            <input type="text" name="first_name" value={profile.first_name} onChange={handleChange} placeholder="First Name" />
+            <input type="text" name="last_name" value={profile.last_name} onChange={handleChange} placeholder="Last Name" />
+            <input type="text" name="id_number" value={profile.id_number} onChange={handleChange} placeholder="ID Number" />
+            <input type="text" name="license_number" value={profile.license_number} onChange={handleChange} placeholder="License Number" />
+            <input type="text" name="phone_number" value={profile.phone_number} onChange={handleChange} placeholder="Phone Number" />
+          </div>
 
-        <h3>Address</h3>
-        <input type="text" name="street_name" value={profile.street_name} onChange={handleChange} placeholder="Street Name" />
-        <input type="text" name="suburb" value={profile.suburb} onChange={handleChange} placeholder="Suburb" />
-        <input type="text" name="province" value={profile.province} onChange={handleChange} placeholder="Province" />
-        <input type="text" name="zip_code" value={profile.zip_code} onChange={handleChange} placeholder="Zip Code" />
+          {/* Address */}
+          <div className="form-section">
+            <h3>Address</h3>
+            <input type="text" name="street_name" value={profile.street_name} onChange={handleChange} placeholder="Street Name" />
+            <input type="text" name="suburb" value={profile.suburb} onChange={handleChange} placeholder="Suburb" />
+            <input type="text" name="province" value={profile.province} onChange={handleChange} placeholder="Province" />
+            <input type="text" name="zip_code" value={profile.zip_code} onChange={handleChange} placeholder="Zip Code" />
+          </div>
 
-        <h3>Documents</h3>
-        <input type="file" name="profile_picture" onChange={handleFileChange} />
-        <input type="file" name="id_document" onChange={handleFileChange} />
-        <input type="file" name="license_doc" onChange={handleFileChange} />
-        <input type="file" name="id_copy" onChange={handleFileChange} />
-        <input type="file" name="proof_of_residence" onChange={handleFileChange} />
+          {/* Documents */}
+          <div className="form-section">
+            <h3>Documents Upload</h3>
 
-        <button type="submit">Save Profile</button>
-      </form>
+           
+
+            <label>ID Document</label>
+            <input type="file" name="id_document" onChange={handleFileChange} />
+
+            <label>License Document</label>
+            <input type="file" name="license_doc" onChange={handleFileChange} />
+
+            <label>ID Copy</label>
+            <input type="file" name="id_copy" onChange={handleFileChange} />
+
+            <label>Proof of Residence</label>
+            <input type="file" name="proof_of_residence" onChange={handleFileChange} />
+          </div>
+
+          <button type="submit" className="primary-btn">Save Profile</button>
+        </form>
+      </div>
     </div>
   );
 };

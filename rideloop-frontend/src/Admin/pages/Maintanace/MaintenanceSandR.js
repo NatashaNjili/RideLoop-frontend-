@@ -1,94 +1,126 @@
-// MaintenanceSandR.js
+
+
+// src/Common/pages/MaintenanceSandR.js
 // Responsible for sending and receiving insurance company data from the backend
 
 const API_URL = 'http://localhost:8080/rideloopdb/maintenance';
 
-// Send new insurance company data to backend
-export async function sendInsuranceToBackend(data) {
+// ===== Helper: Get headers with optional JWT token =====
+const getHeaders = (token) => {
+  const jwtToken = token || localStorage.getItem('jwtToken'); // Ensure matches login storage
+  return {
+    'Content-Type': 'application/json',
+    ...(jwtToken ? { Authorization: `Bearer ${jwtToken}` } : {}),
+  };
+};
+
+// ===== Create new insurance company =====
+export async function sendInsuranceToBackend(data, token = null) {
   try {
-    const response = await fetch(`${API_URL}/create`, {
+    const res = await fetch(`${API_URL}/create`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(token),
       body: JSON.stringify(data),
     });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
     }
-    return await response.json();
-  } catch (error) {
-    console.error('Error sending insurance:', error);
-    throw error;
+
+    return await res.json();
+  } catch (err) {
+    console.error('Error sending insurance:', err);
+    throw err;
   }
 }
 
-// Get all insurance companies from backend
-export async function fetchAllInsurance() {
+// ===== Fetch all insurance companies =====
+export async function fetchAllInsurance(token = null) {
   try {
-    const response = await fetch(`${API_URL}/all`, {
+    const res = await fetch(`${API_URL}/all`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(token),
     });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
     }
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching insurance:', error);
-    throw error;
+
+    return await res.json();
+  } catch (err) {
+    console.error('Error fetching insurance:', err);
+    throw err;
   }
 }
-export const deleteInsurance = async (id) => {
-	const res = await fetch(`${API_URL}/${id}`, {
-		method: 'DELETE',
-	});
-	if (!res.ok) throw new Error('Failed to delete');
-	return res.json();
-};
 
-// Fetch single insurance by ID
-export const fetchInsuranceById = async (id) => {
-	const res = await fetch(`${API_URL}/${id}`);
-	if (!res.ok) throw new Error('Insurance not found');
-	return res.json();
-};
+// ===== Fetch single insurance by ID =====
+export async function fetchInsuranceById(id, token = null) {
+  try {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: 'GET',
+      headers: getHeaders(token),
+    });
 
-// Update insurance
-// MaintenanceSandR.js
-export const updateInsurance = async (id, data) => {
-	// Build payload with correct insurance fields
-	const payload = {
-		insuranceCompanyName: data.insuranceCompanyName || '',
-		contactPerson: data.contactPerson || '',
-		contactNumber: data.contactNumber || '',
-		coverageType: data.coverageType || '',
-		costPerMonth: Number(data.costPerMonth) || 0,
-		description: data.description || '',
-	};
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Insurance not found: ${text}`);
+    }
 
-	try {
-		const res = await fetch(`${API_URL}/update/${id}`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(payload),
-      
-		});
-console.error('Error in updateInsurance:', payload);
-		if (!res.ok) {
-			const errorText = await res.text();
-			throw new Error(`Failed to update: ${errorText}`);
-		}
+    return await res.json();
+  } catch (err) {
+    console.error('Error fetching insurance by ID:', err);
+    throw err;
+  }
+}
 
-		return await res.json();
-	} catch (err) {
-		console.error('Error in updateInsurance:', err);
-		throw err;
-	}
-};
+// ===== Update insurance =====
+export async function updateInsurance(id, data, token = null) {
+  const payload = {
+    insuranceCompanyName: data.insuranceCompanyName || '',
+    contactPerson: data.contactPerson || '',
+    contactNumber: data.contactNumber || '',
+    coverageType: data.coverageType || '',
+    costPerMonth: Number(data.costPerMonth) || 0,
+    description: data.description || '',
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/update/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(token),
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to update: ${text}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error('Error updating insurance:', err);
+    throw err;
+  }
+}
+
+// ===== Delete insurance by ID =====
+export async function deleteInsurance(id, token = null) {
+  try {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(token),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to delete: ${text}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error('Error deleting insurance:', err);
+    throw err;
+  }
+}
