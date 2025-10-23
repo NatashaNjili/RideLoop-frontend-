@@ -1,153 +1,255 @@
-"use client"
+/* eslint-disable */
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import axios from "axios";
+import NavBar from "../../../components/NavBar";
+import "../../pagescss/FinancialReport.css";
 
-import { useState } from "react"
-import axios from "axios"
-import { useNavigate } from "react-router-dom"
-import "../../../Authentication/pagescss/Register.css"
+import { useNavigate } from "react-router-dom";
+// Import Chart.js core
+import {
+  Chart,
+  BarController,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import AdminSidebar from "../../../components/AdminSidebar";
+
+// Register required controllers & elements
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
+
+const PAYMENT_ALL_URL = "http://localhost:8080/rideloopdb/payment/getAll";
 
 function FinancialReport() {
-    const navigate = useNavigate()
-    const [reportData, setReportData] = useState({
-        reportID: "",
-        generateDate: ""
-    })
-    const [reportResults, setReportResults] = useState(null)
-    const [message, setMessage] = useState("")
-    const [loading, setLoading] = useState(false)
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [customDate, setCustomDate] = useState("");
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setReportData({ ...reportData, [name]: value })
+  const token = localStorage.getItem("jwtToken");
+  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+  const userID = loggedInUser?.userID;
+
+  const chartRef = useRef(null); // Reference to the canvas
+  const chartInstance = useRef(null); // Hold the chart instance for cleanup
+  const navigate = useNavigate();
+  // Fetch payments
+  useEffect(() => {
+    if (!token || !userID) {
+      setError("You must be logged in.");
+      setLoading(false);
+      return;
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        setMessage("")
-        setLoading(true)
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        if (!reportData.reportID) {
-            setMessage("Please enter a Report ID.")
-            setLoading(false)
-            return
-        }
+    const fetchPayments = async () => {
+      try {
+        const res = await axios.get(PAYMENT_ALL_URL);
+        let data = Array.isArray(res.data) ? res.data : [res.data];
+        const validPayments = data
+          .filter(p => p.paymentAmount > 0 && p.paymentDate)
+          .map(p => ({ ...p, date: new Date(p.paymentDate) }));
+        setPayments(validPayments);
+      } catch (err) {
+        setError("Failed to load financial data.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        try {
-            // get all reports
-            const response = await axios.get("http://localhost:8080/rideloop/financialReport/getall")
-            console.log("Response:", response)
+    fetchPayments();
+  }, [token, userID]);
 
-            if (response.status === 200) {
-                // find the report that matches the reportID entered by user
-                const foundReport = response.data.find(
-                    (report) => report.reportID === parseInt(reportData.reportID)
-                )
+  // Helper
+  const formatDate = (date) => date.toISOString().split("T")[0];
 
-                if (foundReport) {
-                    setReportResults(foundReport)
-                    setMessage("Report found successfully!")
-                } else {
-                    setReportResults(null)
-                    setMessage(`No report found with Report ID ${reportData.reportID}`)
-                }
-            } else {
-                setMessage("Unexpected server response.")
-            }
-        } catch (error) {
-            console.error("Error:", error)
-            setMessage(error.response?.data?.message || "Server error. Try again later.")
-        } finally {
-            setLoading(false)
-        }
+  // Recalculate & render chart whenever payments change
+  useEffect(() => {
+    if (loading || error || payments.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+
+    const filterByRange = (start, end = new Date()) =>
+      payments.filter(p => p.date >= start && p.date <= end);
+
+    const sum = (list) => list.reduce((s, p) => s + p.paymentAmount, 0);
+
+    const data = {
+      labels: ["Today", "This Week", "This Month", "This Year"],
+      datasets: [
+        {
+          label: "Revenue (ZAR)",
+          data: [
+            sum(filterByRange(new Date(today))),
+            sum(filterByRange(startOfWeek)),
+            sum(filterByRange(startOfMonth)),
+            sum(filterByRange(startOfYear)),
+          ],
+          backgroundColor: [
+            "rgba(54, 162, 235, 0.7)",
+            "rgba(75, 192, 192, 0.7)",
+            "rgba(255, 206, 86, 0.7)",
+            "rgba(255, 99, 132, 0.7)",
+          ],
+          borderColor: [
+            "rgba(54, 162, 235, 1)",
+            "rgba(75, 192, 192, 1)",
+            "rgba(255, 206, 86, 1)",
+            "rgba(255, 99, 132, 1)",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+
+    const config = {
+      type: "bar",
+      data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: "Revenue Overview" },
+          legend: { position: "top" },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "ZAR (R)" },
+          },
+        },
+      },
+    };
+
+    // Cleanup previous chart
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
     }
 
+    // Create new chart
+    const ctx = chartRef.current.getContext("2d");
+    chartInstance.current = new Chart(ctx, config);
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-        }).format(amount || 0)
-    }
+    // Cleanup on unmount
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [payments, loading, error]);
 
-    return (
-        <div className="App">
-            <div style={{ position: "absolute", top: 24, left: 24, zIndex: 10 }}>
-                <button
-                    type="button"
-                    onClick={() => navigate("/Reports")}
-                    style={{
-                        background: "none",
-                        border: "none",
-                        color: "#55d659",
-                        fontSize: 18,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
-                    <span style={{ fontSize: 22, marginRight: 4 }}>&larr;</span> Back to Dashboard
-                </button>
-            </div>
+  // ===== Rest of logic (same as before) =====
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
 
-            <form className="register-form" onSubmit={handleSubmit}>
-                <h2 className="register-title">Fetch Financial Report</h2>
+  const filterByRange = (startDate, endDate = new Date()) => {
+    return payments.filter(p => p.date >= startDate && p.date <= endDate);
+  };
 
-                {message && <p className="error-message-fr">{message}</p>}
+  const todayPayments = filterByRange(new Date(today.setHours(0,0,0,0)));
+  const weekPayments = filterByRange(startOfWeek);
+  const monthPayments = filterByRange(startOfMonth);
+  const yearPayments = filterByRange(startOfYear);
+  const customPayments = customDate
+    ? payments.filter(p => formatDate(p.date) === customDate)
+    : [];
 
-                <div>
-                    <label className="register-label">Report ID</label>
-                    <input
-                        type="number"
-                        name="reportID"
-                        className="register-input"
-                        value={reportData.reportID}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+  const sumRevenue = (list) => list.reduce((sum, p) => sum + p.paymentAmount, 0);
+  const todayRevenue = sumRevenue(todayPayments);
+  const weekRevenue = sumRevenue(weekPayments);
+  const monthRevenue = sumRevenue(monthPayments);
+  const yearRevenue = sumRevenue(yearPayments);
+  const customRevenue = sumRevenue(customPayments);
 
-                <div>
-                    <label className="register-label">Generate Date</label>
-                    <input
-                        type="date"
-                        name="generateDate"
-                        className="register-input"
-                        value={reportData.generateDate}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+  // ===== Render =====
+  return ( 
+  <div className="layout"><AdminSidebar/>
+    <div className="financial-report-container">
+     
+      <main className="financial-report-main">
+        <main className="financial-report-main">
+  {/* Back to Dashboard Button */}
+ 
 
-                <button type="submit" className="register-button" style={{ marginTop: "25px" }} disabled={loading}>
-                    {loading ? "Fetching..." : "Fetch Report"}
-                </button>
+  <h2>📊 Financial Report Dashboard</h2>
+  {/* ... rest of your content */}
+</main>
 
-                {reportResults && (
-                    <div
-                        style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.1)",
-                            padding: "20px",
-                            borderRadius: "8px",
-                            marginTop: "20px",
-                            textAlign: "left",
-                        }}
-                    >
-                        <h3 style={{ color: "#55d659", marginBottom: "15px" }}>
-                            Report #{reportResults.reportID} ({reportResults.timePeriod})
-                        </h3>
+        {loading && <p className="loading">Loading financial data...</p>}
+        {error && <p className="error">{error}</p>}
 
-                        <p><strong>Generate Date:</strong> {reportResults.generateDate}</p>
-                        <p><strong>Export Format:</strong> {reportResults.exportFormat}</p>
-                        <p><strong>Total Revenue:</strong> {formatCurrency(reportResults.totalRevenue)}</p>
-                        <p><strong>Expenses:</strong> {formatCurrency(reportResults.expenses)}</p>
-                        <p><strong>Net Profit:</strong> {formatCurrency(reportResults.netProfit)}</p>
-                        <p><strong>Rental Income:</strong> {formatCurrency(reportResults.rentalIncome)}</p>
-                        <p><strong>Insurance Income:</strong> {formatCurrency(reportResults.insuranceIncome)}</p>
-                        <p><strong>Additional Charges:</strong> {formatCurrency(reportResults.additionalCharges)}</p>
-                    </div>
+        {!loading && !error && (
+          <>
+            {/* Chart Canvas */}
+            <section className="chart-section">
+              <canvas ref={chartRef} width={600} height={400}></canvas>
+            </section>
+
+            {/* Custom Date Filter */}
+            <section className="filter-section">
+              <h3>🔍 Filter by Specific Date</h3>
+              <div className="date-filter">
+                <input
+                  type="date"
+                  value={customDate}
+                  onChange={(e) => setCustomDate(e.target.value)}
+                  max={formatDate(new Date())}
+                />
+                {customDate && (
+                  <div className="custom-result">
+                    <h4>
+                      Revenue on {customDate}:{" "}
+                      <span className="revenue-amount">R{customRevenue.toFixed(2)}</span>
+                    </h4>
+                    {customPayments.length === 0 && (
+                      <p className="no-data">No transactions found for this date.</p>
+                    )}
+                  </div>
                 )}
-            </form>
-        </div>
-    )
+              </div>
+            </section>
+
+            {/* Summary Cards */}
+            <section className="summary-cards">
+              <div className="card today">
+                <h3>Today</h3>
+                <p className="amount">R{todayRevenue.toFixed(2)}</p>
+                <p className="count">({todayPayments.length} transactions)</p>
+              </div>
+              <div className="card week">
+                <h3>This Week</h3>
+                <p className="amount">R{weekRevenue.toFixed(2)}</p>
+                <p className="count">({weekPayments.length} transactions)</p>
+              </div>
+              <div className="card month">
+                <h3>This Month</h3>
+                <p className="amount">R{monthRevenue.toFixed(2)}</p>
+                <p className="count">({monthPayments.length} transactions)</p>
+              </div>
+              <div className="card year">
+                <h3>This Year</h3>
+                <p className="amount">R{yearRevenue.toFixed(2)}</p>
+                <p className="count">({yearPayments.length} transactions)</p>
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+    </div></div>
+  );
 }
 
-export default FinancialReport
+export default FinancialReport;

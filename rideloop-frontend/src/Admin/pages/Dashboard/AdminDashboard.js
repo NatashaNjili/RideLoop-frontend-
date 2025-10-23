@@ -1,36 +1,14 @@
+// src/pages/AdminDashboard.jsx
 import React from 'react';
-import '../../pagescss/AdminDashboard.css';     
-import { Link, useNavigate } from 'react-router-dom';
+import '../../pagescss/AdminDashboard.css';
 import { FaSearch } from 'react-icons/fa';
-import logo from '../../../assets/logo.png';
+import AdminSidebar from  "../../../components/AdminSidebar"; // ✅ Import it
 
 function AdminDashboard() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate('/'); // Just redirect to login or landing page
-  };
-
   return (
     <div className="layout">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <img src={logo} alt="Logo" className="logo" />
-        <nav>
-          <ul>
-            <li><Link to="/" className="sidebar-link">Overview</Link></li>
-            {/* <li><Link to="/admin/manage-users" className="sidebar-link">Manage Users</Link></li> */}
-            <li><Link to="/ManageCars" className="sidebar-link">Manage Cars</Link></li>
-            <li><Link to="/Maintenance" className="sidebar-link">Maintenance</Link></li>
-            <li><Link to="/Reports" className="sidebar-link">Reports</Link></li>
-            <li><Link to="/admin/manage-bookings" className="sidebar-link">Manage Bookings</Link></li>
-            <li><Link to="/CustomerApprovalPage" className="sidebar-link">Customer Approvals</Link></li>
-           <li><Link to="/RenterDashboard" className="sidebar-link">Renter Dashboard</Link></li>
-
-          </ul>
-        </nav>
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
-      </aside>
+      {/* ✅ Use the new component */}
+      <AdminSidebar />
 
       {/* Main Content */}
       <main className="main-content">

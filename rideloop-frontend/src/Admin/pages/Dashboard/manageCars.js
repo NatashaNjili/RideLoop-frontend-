@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import logo from "../../../assets/logo.png";
-
+import AdminSidebar from "../../../components/AdminSidebar";
 import AdminLocation from "../../../Common/pages/Location/AdminLocation";
 import { sendLocationToBackend } from "../../../Common/pages/Location/LocationSandR";
 
@@ -33,23 +33,8 @@ const ManageCars = () => {
   return (
     <div className="layout">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <img src={logo} alt="Logo" className="logo" />
-        <nav style={{ flex: 1 }}>
-          <ul>
-            <li><Link to="/" className="sidebar-link">Overview</Link></li>
-            <li><Link to="/ManageCars" className="sidebar-link active">Manage Cars</Link></li>
-            <li><Link to="/Maintenance" className="sidebar-link">Maintenance</Link></li>
-            <li><Link to="/Reports" className="sidebar-link">Reports</Link></li>
-            <li><Link to="/admin/manage-bookings" className="sidebar-link">Manage Bookings</Link></li>
-            <li><Link to="/CustomerApproval" className="sidebar-link">Customer Approvals</Link></li>
-            <li><Link to="/RenterDashboard" className="sidebar-link">Renter Dashboard</Link></li>
-          </ul>
-        </nav>
-        <div style={{ marginTop: "auto" }}>
-          <button className="logout-button" onClick={handleLogout}>Logout</button>
-        </div>
-      </aside>
+     
+      <AdminSidebar />
 
       {/* Main Content */}
       <main className="main-content">
