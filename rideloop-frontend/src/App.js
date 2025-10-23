@@ -4,7 +4,6 @@ import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import AdminDashboard from './Admin/pages/Dashboard/AdminDashboard';
 import ManageCars from './Admin/pages/Dashboard/manageCars';
-import Reports from './Admin/pages/Dashboard/Reports';
 import Maintenance from './Admin/pages/Maintanace/Maintenance';
 import AddMaintenance from './Admin/pages/Maintanace/AddMaintenance';
 import Profile from './Renter/pages/Dashboard/Profile';
@@ -24,10 +23,7 @@ import RentalAction from './Renter/pages/Rides/RentalAction';
 
 import CustomerApprovalPage from "./Admin/pages/CustomerApproval/CustomerApprovalPage"
 import FinancialReport from "./Admin/pages/Reports/FinancialReport"
-import FinancialReportsAdmin from "./Admin/pages/Reports/FinancialReportsAdmin"
-import CreateReport from "./Admin/pages/Reports/CreateReport"
-import UpdateReport from "./Admin/pages/Reports/UpdateReport"
-import DeleteReport from "./Admin/pages/Reports/DeleteReport"
+
 import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
 import EditCar from './Admin/pages/Cars/EditCar';
 import Rentals from './Renter/pages/Dashboard/Rentals';
@@ -47,7 +43,6 @@ function App() {
       <Route path="/ManageCars" element={<ManageCars />} />
       <Route path="/CarList" element={<CarList />} />
       <Route path="/AddNewCar" element={<AddNewCar />} />
-      <Route path="/Reports" element={<Reports />} />
       <Route path="/Maintenance" element={<Maintenance />} />
       <Route path="/AddMaintenance" element={<AddMaintenance />} />
       <Route path="/Location" element={<Location />} />
@@ -60,11 +55,9 @@ function App() {
       <Route path="/Register" element={<Register />} />
       <Route path="/CustomerApprovalPage" element={<CustomerApprovalPage />} />
       <Route path="/FinancialReport" element={<FinancialReport />} />
-      <Route path="/Reports" element={<Reports />} />
-      <Route path="/FinancialReportsAdmin" element={<FinancialReportsAdmin />} />
-      <Route path="/CreateReport" element={<CreateReport />} />
-      <Route path="/UpdateReport" element={<UpdateReport />} />
-      <Route path="/DeleteReport" element={<DeleteReport />} />
+     
+      
+     
       <Route path="/ViewCustomerProfile" element={<ViewCustomerProfile />} />
         <Route path="/EditMaintenance/:id" element={<EditMaintenance />} />
         <Route path="/EditCar/:id" element={<EditCar/>} />
