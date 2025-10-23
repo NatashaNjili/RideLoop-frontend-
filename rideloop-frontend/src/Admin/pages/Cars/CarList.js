@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../../pagescss/CarList.css';
 import { fetchAllCars, deleteCar } from './CarSandR';
 import { FaEdit, FaTrash } from 'react-icons/fa';
@@ -48,6 +47,18 @@ const CarList = () => {
 
   return (
     <div className="car-list-container">
+      {/* Back Button */}
+      <div className="back-button-container">
+        <button
+          type="button"
+          onClick={() => navigate('/ManageCars')}
+          className="back-button"
+          aria-label="Go back to Manage Cars"
+        >
+          ← Back to Manage Cars
+        </button>
+      </div>
+
       <h2>Car List</h2>
 
       {error && <p className="error-msg">{error}</p>}
@@ -59,7 +70,6 @@ const CarList = () => {
       ) : (
         <div className="car-list">
           {cars.map((car) => (
-          
             <div className="car-card" key={car.id}>
               {/* Car Header with Action Icons */}
               <div className="car-card-header">
@@ -69,7 +79,7 @@ const CarList = () => {
                 <div className="car-actions">
                   <button
                     className="action-btn edit"
-                    onClick={() => handleUpdate(car.carId)}
+                    onClick={() => handleUpdate(car.id)} // ✅ Fixed: was car.carId
                     aria-label="Edit car"
                   >
                     <FaEdit />

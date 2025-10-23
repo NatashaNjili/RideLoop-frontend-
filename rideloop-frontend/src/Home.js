@@ -34,7 +34,7 @@ function Home() {
       <section className="hero">
         <div className="hero-overlay">
           <div className="hero-text">
-            <h1>Drive on Your Own Terms with Right Loop</h1>
+            <h1>Drive on Your Own Terms with RideLoop</h1>
             <p>Book. Drive. Pay only for the distance you travel.</p>
             <div className="hero-buttons">
               <Link to="/book" className="primary-btn">Book a Car</Link>

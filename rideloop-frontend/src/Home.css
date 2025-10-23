@@ -44,6 +44,7 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   gap: 10px;
+  
 }
 
 .logo-image {
@@ -132,8 +133,8 @@ h1, h2, h3 {
 /* ===== HERO SECTION ===== */
 .hero {
   background: linear-gradient(135deg, rgba(0, 123, 255, 0.7), rgba(0, 212, 255, 0.6));
-  min-height: 60vh;
-  width: 80%;
+  min-height: 20vh;
+  width: 50%;
   border-radius: 0% 25px;
   
 margin-top: 150px;

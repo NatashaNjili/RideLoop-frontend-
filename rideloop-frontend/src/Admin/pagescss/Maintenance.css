@@ -153,3 +153,21 @@
 	color: #c82333;
 	background: #fff1f1;
 }
+
+.edit-icon-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-icon-btn:hover {
+  background-color: #e9ecef;
+  color: #0056b3;
+}

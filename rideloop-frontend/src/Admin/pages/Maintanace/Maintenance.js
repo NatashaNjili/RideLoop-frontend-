@@ -1,140 +1,119 @@
 import React, { useEffect, useState } from 'react';
 import '../../pagescss/Maintenance.css';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaSearch, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
-import logo from '../../../assets/logo.png';
+import { useNavigate } from 'react-router-dom';
+import { FaSearch, FaEdit } from 'react-icons/fa';
 import { fetchAllInsurance, deleteInsurance } from './MaintenanceSandR';
 import AdminSidebar from '../../../components/AdminSidebar';
+
 const Maintenance = () => {
-	const navigate = useNavigate();
-	const [insuranceCompanies, setInsuranceCompanies] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState('');
-	const [dropdownOpen, setDropdownOpen] = useState(null); // Track open dropdown
+  const navigate = useNavigate();
+  const [insuranceCompanies, setInsuranceCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-	// Fetch insurance data
-	useEffect(() => {
-		const fetchData = async () => {
-			setLoading(true);
-			setError('');
-			try {
-				const data = await fetchAllInsurance();
-				setInsuranceCompanies(Array.isArray(data) ? data : []);
-			} catch (err) {
-				setError('Failed to fetch insurance companies.');
-				console.error(err);
-			} finally {
-				setLoading(false);
-			}
-		};
-		fetchData();
-	}, []);
+  // Fetch insurance data
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await fetchAllInsurance();
+        setInsuranceCompanies(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError('Failed to fetch insurance companies.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-	// Close dropdown on outside click
-	useEffect(() => {
-		const handleClickOutside = () => {
-			if (dropdownOpen) setDropdownOpen(null);
-		};
-		document.addEventListener('click', handleClickOutside);
-		return () => document.removeEventListener('click', handleClickOutside);
-	}, [dropdownOpen]);
+  // Handle Delete
+  const handleDelete = async (companyId) => {
+    if (!window.confirm('Are you sure you want to delete this insurance company?')) return;
 
-	// Handle Update Navigation
-	const handleUpdate = (companyId) => {
-		navigate(`/EditMaintenance/${companyId}`); // Make sure this route exists
-		setDropdownOpen(null);
-	};
+    try {
+      await deleteInsurance(companyId);
+      setInsuranceCompanies((prev) => prev.filter((c) => c.id !== companyId));
+      alert('Insurance company deleted successfully.');
+    } catch (err) {
+      setError('Failed to delete insurance company. Please try again.');
+      console.error(err);
+    }
+  };
 
-	// Handle Delete
-	const handleDelete = async (companyId) => {
-		if (!window.confirm('Are you sure you want to delete this insurance company?')) return;
+  return (
+    <div className="layout">
+      {/* Sidebar */}
+      <AdminSidebar />
 
-		try {
-			await deleteInsurance(companyId); // API call to delete
-			setInsuranceCompanies((prev) => prev.filter((c) => c.id !== companyId));
-			alert('Insurance company deleted successfully.');
-		} catch (err) {
-			setError('Failed to delete insurance company. Please try again.');
-			console.error(err);
-		}
-		setDropdownOpen(null);
-	};
+      {/* Main Content */}
+      <main className="main-content">
+        <div className="top-header">
+          <div className="search-container">
+            <input type="text" className="search-bar" placeholder="Search admin data..." />
+            <FaSearch className="search-icon" />
+          </div>
+          <div className="user-profile">Hi, Admin</div>
+        </div>
 
-	return (
-		<div className="layout">
-			{/* Sidebar */}
-			<AdminSidebar />
+        <div className="maintenance-container">
+          <div className="maintenance-header">
+            <h2>Insurance Companies</h2>
+            <button
+              className="add-insurance-btn"
+              onClick={() => navigate('/AddMaintenance')}
+            >
+              Add New Insurance
+            </button>
+          </div>
 
-			{/* Main Content */}
-			<main className="main-content">
-				<div className="top-header">
-					<div className="search-container">
-						<input type="text" className="search-bar" placeholder="Search admin data..." />
-						<FaSearch className="search-icon" />
-					</div>
-					<div className="user-profile">Hi, Admin</div>
-				</div>
+          {/* Insurance List */}
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p className="error-message">{error}</p>
+          ) : insuranceCompanies.length === 0 ? (
+            <p>No insurance companies found.</p>
+          ) : (
+            <div className="insurance-list">
+              {insuranceCompanies.map((company) => (
+                <div
+                  className="insurance-card"
+                  key={company.id || company.insuranceCompanyName}
+                >
+                  <div className="insurance-card-header">
+                    <h3>{company.insuranceCompanyName}</h3>
+                    {/* Edit Button */}
+                    <button
+                      className="edit-icon-btn"
+                      onClick={() => navigate(`/EditMaintenance/${company.id}`)}
+                      aria-label="Edit insurance company"
+                    >
+                      <FaEdit />
+                    </button>
+                  </div>
+                  <p>{company.description}</p>
 
-				<div className="maintenance-container">
-					<div className="maintenance-header">
-						<h2>Insurance Companies</h2>
-						<button
-							className="add-insurance-btn"
-							onClick={() => navigate('/AddMaintenance')}
-						>
-							Add New Insurance
-						</button>
-					</div>
-
-					{/* Insurance List */}
-					{loading ? (
-						<p>Loading...</p>
-					) : error ? (
-						<p className="error-message">{error}</p>
-					) : insuranceCompanies.length === 0 ? (
-						<p>No insurance companies found.</p>
-					) : (
-						<div className="insurance-list">
-							{insuranceCompanies.map((company) => (
-								<div
-									className="insurance-card"
-									key={company.id || company.insuranceCompanyName}
-								>
-									<div className="insurance-card-header">
-										<h3>{company.insuranceCompanyName}</h3>
-										<div
-											className="menu-container"
-											onClick={(e) => e.stopPropagation()}
-										>
-											<FaEllipsisV
-												className="menu-dots"
-												onClick={() =>
-													setDropdownOpen(
-														dropdownOpen === company.id ? null : company.id
-													)
-												}
-											/>
-											{dropdownOpen === company.id && (
-												<div className="dropdown-menu">
-													<button onClick={() => handleUpdate(company.id)}>
-														<FaEdit /> Update
-													</button>
-													<button onClick={() => handleDelete(company.id)}>
-														<FaTrash /> Delete
-													</button>
-												</div>
-											)}
-										</div>
-									</div>
-									<p>{company.description}</p>
-								</div>
-							))}
-						</div>
-					)}
-				</div>
-			</main>
-		</div>
-	);
+                  {/* Optional: Delete button below (or keep only in confirmation) */}
+                  {/* 
+                    <button
+                      className="delete-link"
+                      onClick={() => handleDelete(company.id)}
+                      style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}
+                    >
+                      Delete
+                    </button>
+                  */}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
 };
 
 export default Maintenance;
