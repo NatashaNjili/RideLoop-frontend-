@@ -208,60 +208,81 @@ const Location = ({
           )}
 
           {/* Show all cars only if no car is accepted */}
-          {!acceptedCar && !isInDrivingMode && !showThankYou && cars.length > 0 && (
-            cars.map((car) => {
-              if (!car.location?.latitude || !car.location?.longitude) return null;
+          {/* Show all cars only if no car is accepted */}
+{!acceptedCar && !isInDrivingMode && !showThankYou && cars.length > 0 && (
+  cars.map((car) => {
+    if (!car.location?.latitude || !car.location?.longitude) return null;
+    return (
+      <Marker
+        key={car.id || car.licensePlate}
+        position={[car.location.latitude, car.location.longitude]}
+        icon={carIcon}
+        eventHandlers={{
+          click: () => onChooseCarMode(car),
+        }}
+      >
+        <Popup>
+          <b>{car.brand} {car.model}</b><br />
+          Year: {car.year}<br />
+          Plate: {car.licensePlate}<br />
+          Status: {car.status}<br />
+          Category: {car.category}
+        </Popup>
+      </Marker>
+    );
+  })
+)}
 
-              return (
-                <Marker
-                  key={car.id || car.licensePlate}
-                  position={[car.location.latitude, car.location.longitude]}
-                  icon={carIcon}
-                  eventHandlers={{
-                    click: () => onChooseCarMode(car),
-                  }}
-                >
-                  <Popup>
-                    <b>{car.brand} {car.model}</b><br />
-                    Year: {car.year}<br />
-                    Plate: {car.licensePlate}<br />
-                    Status: {car.status}<br />
-                    Category: {car.category}
-                  </Popup>
-                </Marker>
-              );
-            })
-          )}
 
-          {/* Accepted Car - Draggable */}
-          {acceptedCar && (
-            <Marker
-              position={[
-                acceptedCar.location.latitude,
-                acceptedCar.location.longitude,
-              ]}
-              icon={drivingCarIcon}
-              draggable={isInDrivingMode}
-              eventHandlers={{
-                dragend: async (e) => {
-                  const { lat, lng } = e.target.getLatLng();
-                  if (!coords) return;
+       {/* Accepted Car - Draggable */}
+{acceptedCar && (
+  <Marker
+    position={[
+      acceptedCar.location.latitude,
+      acceptedCar.location.longitude,
+    ]}
+    icon={drivingCarIcon}
+    draggable={isInDrivingMode}
+    eventHandlers={{
+      dragend: async (e) => {
+        const { lat, lng } = e.target.getLatLng();
+        if (!coords) return;
 
-                  const route = generateRealisticRoute(
-                    { lat: coords.lat, lng: coords.lng },
-                    { lat, lng }
-                  );
+        const route = generateRealisticRoute(
+          { lat: coords.lat, lng: coords.lng },
+          { lat, lng }
+        );
 
-                  const latlngs = route.map(p => [p.lat, p.lng]);
-                  setRoutePath(latlngs);
+        const latlngs = route.map(p => [p.lat, p.lng]);
+        setRoutePath(latlngs);
 
-                  onMapClick(lat, lng);
-                }
-              }}
-            >
-              <Popup>Drag me to your destination!</Popup>
-            </Marker>
-          )}
+        onMapClick(lat, lng);
+      }
+    }}
+  >
+    <Popup>Drag me to your destination!</Popup>
+  </Marker>
+)}{/* ✅ Renter Marker — Rendered LAST to stay on top */}
+{coords && !acceptedCar && !isInDrivingMode && (
+  isWalking ? (
+    <Marker position={[coords.lat, coords.lng]} icon={walkerIcon} zIndexOffset={1000}>
+      <Popup>🚶‍♂️ On my way to the car...</Popup>
+    </Marker>
+  ) : (
+    <Marker position={[coords.lat, coords.lng]} icon={renterIcon} zIndexOffset={1000}>
+      <Popup>
+        <div style={{ textAlign: 'center' }}>
+          <button
+            style={chooseCarButtonStyle}
+            onClick={() => onChooseCarMode(true)}
+          >
+            Choose a Car
+          </button>
+        </div>
+      </Popup>
+    </Marker>
+  )
+)}
 
           {/* Highlighted Route */}
           {routePath.length > 0 && (
