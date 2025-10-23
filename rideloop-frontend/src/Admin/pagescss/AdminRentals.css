@@ -1,0 +1,99 @@
+.admin-rentals-container {
+  flex: 1;
+  background-color: #f5f7fa;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.admin-rentals-main {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  min-height: calc(100% - 40px);
+}
+
+.admin-rentals-main h2 {
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 0;
+  padding-top: 40px;
+}
+
+/* Reuse back button style */
+.back-to-dashboard-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.back-to-dashboard-btn:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Summary Cards */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.summary-cards .card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.summary-cards .card.total { border-top: 4px solid #3498db; }
+.summary-cards .card.revenue { border-top: 4px solid #2ecc71; }
+
+.summary-cards .card h3 {
+  margin: 0 0 0.8rem;
+  color: #2c3e50;
+}
+
+.summary-cards .card .amount {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2980b9;
+}
+
+/* Chart Section */
+.chart-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin: 2rem 0;
+  height: 450px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Loading & Error */
+.loading, .error {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.error {
+  color: #e74c3c;
+}

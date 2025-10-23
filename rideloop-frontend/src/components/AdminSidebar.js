@@ -23,7 +23,7 @@ function AdminSidebar() {
           <li><Link to="/ManageCars" className="sidebar-link">Manage Cars</Link></li>
           <li><Link to="/Maintenance" className="sidebar-link">Maintenance</Link></li>
           <li><Link to="/FinancialReport" className="sidebar-link">Financial Reports</Link></li>
-          <li><Link to="/Rentals" className="sidebar-link">Rentals</Link></li>
+          <li><Link to="/AdminRentals" className="sidebar-link">Rentals</Link></li>
           <li><Link to="/CustomerApprovalPage" className="sidebar-link">Customer Approvals</Link></li>
           
         </ul>

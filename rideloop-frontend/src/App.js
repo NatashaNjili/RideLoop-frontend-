@@ -23,7 +23,7 @@ import RentalAction from './Renter/pages/Rides/RentalAction';
 
 import CustomerApprovalPage from "./Admin/pages/CustomerApproval/CustomerApprovalPage"
 import FinancialReport from "./Admin/pages/Reports/FinancialReport"
-
+import AdminRentals from './Admin/pages/Reports/AdminRental';
 import ViewCustomerProfile from './Admin/pages/CustomerApproval/ViewCustomerProfile';
 import EditCar from './Admin/pages/Cars/EditCar';
 import Rentals from './Renter/pages/Dashboard/Rentals';
@@ -55,7 +55,8 @@ function App() {
       <Route path="/Register" element={<Register />} />
       <Route path="/CustomerApprovalPage" element={<CustomerApprovalPage />} />
       <Route path="/FinancialReport" element={<FinancialReport />} />
-     
+      <Route path="/AdminRentals" element={<AdminRentals />} />
+      
       
      
       <Route path="/ViewCustomerProfile" element={<ViewCustomerProfile />} />

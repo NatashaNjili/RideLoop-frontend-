@@ -104,6 +104,26 @@ class RentalAction {
       throw error;
     }
   }
+
+// ===== GET ALL RENTALS (FOR ADMIN) =====
+static async getAllRentals() {
+  try {
+    const response = await axios.get(`${RENTAL_API_URL}/getAll`, {
+      headers: getAuthHeader(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "❌ Failed to fetch all rentals:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+}
+
+
+
+
 }
 
 export default RentalAction;
